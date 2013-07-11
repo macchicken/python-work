@@ -27,7 +27,7 @@ SUFFIXS=['gif','jpg','jpeg','png','bmp','mp3','wav','wma','doc']
 urlQ=Queue()
 
 def c(sequence):
-  for item in sequence:
+	for item in sequence:
 		c.items+=1
 		yield item
 
