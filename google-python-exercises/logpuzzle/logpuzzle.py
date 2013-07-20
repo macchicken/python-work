@@ -29,8 +29,8 @@ def checkSpecialFilePattern(filePattern,gethttpUrlDict):
 	fileList=[os.path.basename(httpUrl) for httpUrl in gethttpUrlDict.keys()]
 	return len(fileList)==len(re.findall(filePattern,' '.join(fileList)))
 
-def get_second_word(tuplpe_t):
-	return os.path.basename(tuplpe_t[0]).split('-')[2]
+def get_second_word(fileurl):
+	return os.path.basename(fileurl).split('-')[2]
 
 def find_number_path(pathname):
 	return int(re.search(r'img[\d]+.[\S]*',pathname).group().split('.')[-2][lenKey:])
@@ -58,7 +58,7 @@ def read_urls(filename,Screensout=False):
   keyfn=None
   if specialFile:keyfn=get_second_word
   httpDomainName='http://'+filename.split('_',1)[1]
-  return [httpDomainName+gethttpUrl for gethttpUrl,_ in sorted(gethttpUrlDict.items(),key=keyfn)]
+  return [httpDomainName+gethttpUrl for gethttpUrl in sorted(gethttpUrlDict.keys(),key=keyfn)]
 
 def report_hook(blocksCounts,blockSize,fileSize):
 	print 'number of blocks been transferred',blocksCounts
@@ -98,7 +98,7 @@ def download_images(img_urls, dest_dir, mutilTask=1):
   Creates the directory if necessary.
   """
   if not os.access(dest_dir,os.F_OK):os.makedirs(dest_dir)
-  file_index,downloadedFileList=0,[]
+  file_index,downloadedFileList,sortkey=0,[],None
   for img_url in img_urls:
 	try:
 		imgFilename='img'+str(file_index)+'.jpg';file_index+=1
@@ -114,7 +114,7 @@ def download_images(img_urls, dest_dir, mutilTask=1):
 		t=Thread(target=downloadFileWorker,args=(downloadedFileList,dest_dir))
 		t.daemon=True;t.start()
 	urlQ.join()
-	sortkey=find_number_path
+  sortkey=find_number_path
   if downloadedFileList!=[]:createLocalimgHtml(dest_dir+os.sep+'index.html',downloadedFileList,sortkey)
 
 def main():
