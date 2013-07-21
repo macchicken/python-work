@@ -21,7 +21,7 @@ from urllib2 import HTTPError
 from sys import exc_info
 from Queue import Queue
 from threading import Thread
-
+from argparse import ArgumentParser
 
 SUFFIXS=['gif','jpg','jpeg','png','bmp','mp3','wav','wma','doc']
 urlQ=Queue()
@@ -171,14 +171,21 @@ def downloadMsnPicData():
 		target.close()
 	print '%d file downloaded' % (c.items)
 
-
+def main():
+	cmdparse=ArgumentParser(description='download image files from url file')
+	cmdparse.add_argument('--netease',dest='netease',default=False,action='store_true')
+	cmdparse.add_argument('--msn',dest='msn',default=False,action='store_true')
+	cmdparse.add_argument('--yahoo',dest='yahoo',default=False,action='store_true')
+	cmdparse.add_argument('--911pop',dest='pop',default=False,action='store_true')
+	args=cmdparse.parse_args()
+	if args.netease:download163galleryData(mutiltask=True)
+	if args.msn:downloadMsnPicData()
+	if args.yahoo:downloadYahooPicData()
+	if args.pop:download911PopData()
 
 if __name__ == '__main__':
 	# print transferSuffix('attachment;ttttfilename=news_pic.JPG.jpg')
 	# connectSSl('www.youtube.com')
-	# download911PopData()
-	# downloadYahooPicData()
-	download163galleryData(mutiltask=True)
-	# downloadMsnPicData()
 	# print basename('http://imgbbs.ph.126.net/_FyQQtL0d8zfWS12JiknvA==/2204512017697878635.jpg')
+	main()
 	pass
