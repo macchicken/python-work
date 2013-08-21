@@ -8,6 +8,7 @@
 from filecmp import dircmp
 from os import getcwd
 from itertools import permutations
+import hashlib
 
 def c(sequence):
 	for item in sequence:
@@ -88,6 +89,15 @@ def chineseWordCombinations(guessStr):
 	f.close()
 	print 'total of %d permutations' % (c.items)
 
+def hashfile(fileName,blocknum=128):
+	with open(fileName,'rb') as target:
+		hasher=hashlib.md5()
+		for chunk in iter(lambda: target.read(blocknum*hasher.block_size), b''):
+			hasher.update(chunk)
+	return hasher.hexdigest()
+
+
+
 if __name__ == '__main__':
 	# dirc_a='L:\\barry-document'
 	# dirc_b='K:\\barry-document'
@@ -97,4 +107,5 @@ if __name__ == '__main__':
 	# writeGoogleDisFile()
 	# guessStr=['石','银','快','环','宇','联','花','递','新','园','给','流','有','球','浪','闻','宙','河','凰','播','星','人','陨','凤']
 	# chineseWordCombinations(guessStr)
+	print hashfile('K:\\tools\\freegate.rar')
 	pass
