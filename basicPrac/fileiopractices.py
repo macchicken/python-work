@@ -89,10 +89,11 @@ def chineseWordCombinations(guessStr):
 	f.close()
 	print 'total of %d permutations' % (c.items)
 
-def hashfile(fileName,blocknum=128):
+def hashfile(fileName,blockNum=128):
 	with open(fileName,'rb') as target:
 		hasher=hashlib.md5()
-		for chunk in iter(lambda: target.read(blocknum*hasher.block_size), b''):
+		blockSize=hasher.block_size
+		for chunk in iter(lambda: target.read(blockNum*blockSize), b''):
 			hasher.update(chunk)
 	return hasher.hexdigest()
 
