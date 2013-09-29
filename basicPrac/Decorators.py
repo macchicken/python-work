@@ -28,7 +28,7 @@ def func2():
     print "inside func2()"
 
 
-# ---------------
+# ------------------------------
 
 
 def decorator(d):
