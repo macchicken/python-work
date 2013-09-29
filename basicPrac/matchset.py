@@ -150,11 +150,12 @@ def matchset(pattern, text):
         raise ValueError('unknown pattern: %s' % pattern)
 
 def test_matchset():
-    assert match(('star', ('lit', 'a')),'aaabcd') == 'aaa'
-    assert match(('alt', ('lit', 'b'), ('lit', 'c')), 'ab') == None
-    assert match(('alt', ('lit', 'b'), ('lit', 'a')), 'ab') == 'a'
-    assert search(('alt', ('lit', 'b'), ('lit', 'c')), 'ab') == 'b'
-    return 'match tests pass'
+	assert match(('star', ('lit', 'a')),'aaabcd') == 'aaa'
+	assert match(('alt', ('lit', 'b'), ('lit', 'c')), 'ab') == None
+	assert match(('alt', ('lit', 'b'), ('lit', 'a')), 'ab') == 'a'
+	assert search(('alt', ('lit', 'b'), ('lit', 'c')), 'ab') == 'b'
+	assert search(('lit', ''), '') == ''
+	return 'match tests pass'
 
 print test_matchset()
 
