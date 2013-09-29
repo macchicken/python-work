@@ -176,10 +176,12 @@ def verify(G):
     show('Orphans ', lhstokens-rhstokens)
 
 if __name__ == '__main__':
-    # print(G)
-    verify(G)
+    print "parsing expression---"
+	# print(G)
+    # verify(G)
     print(parse('Exp', '3*x + b', G))
 
+    print "\nparsing URL---"
     # print(URL)
     # verify(URL)
-    # print(parse('url', 'http://www.w3.org/Addressing/URL/5_BNF.html', URL))
+    print(parse('url', 'http://www.w3.org/Addressing/URL/5_BNF.html', URL))
