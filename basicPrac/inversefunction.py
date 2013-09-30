@@ -77,9 +77,10 @@ def square(x): return x*x
 def power10(x): return 10**x
 
 
+nums = [2, 4, 6, 8, 10, 25, 99, 100, 101, 1000, 10000, 20000, 40000, 100000000]
+
 def test():
     import math
-    nums = [2, 4, 6, 8, 10, 25, 100, 101, 1000, 10000, 20000, 40000, 100000000]
     sqrt=newtons_inverse(square)
     log10=newtons_inverse(power10)
     cuberoot=newtons_inverse(lambda x: x*x*x)
@@ -94,7 +95,6 @@ def test1(n, name, value, expected):
         n, name, value, expected, diff, ('ok' if diff < .002 else 'BAD'))
 
 def test_time():
-    nums = [2, 4, 6, 8, 10, 100, 101, 1000, 10000, 20000, 40000, 100000000]
     sqrt=newtons_inverse(square)
     log10=newtons_inverse(power10)
     cuberoot=newtons_inverse(lambda x: x*x*x)
@@ -104,34 +104,33 @@ def test_time():
 def test_profile():
 	import cProfile
 	print 'sqaure root -------------'
-	cProfile.run('sqrt(1000000000)')
-	cProfile.run('sqrt2(1000000000)')
-	cProfile.run('sqrt3(1000000000)')
+	parameter='(1000000000)'
+	sqrt=compile('slow_inverse(square)'+parameter,'','exec')
+	sqrt2=compile('newtons_inverse(square)'+parameter,'','exec')
+	sqrt3=compile('binarysearch_inverse(square)'+parameter,'','exec')
+	cProfile.run(sqrt)
+	cProfile.run(sqrt2)
+	cProfile.run(sqrt3)
 	
 	print 'log 10 ------------------'
-	cProfile.run('log10(1000000000)')
-	cProfile.run('log10_2(1000000000)')
-	cProfile.run('log10_3(1000000000)')
+	log10 = compile('slow_inverse(power10)'+parameter,'','exec')
+	log10_2 = compile('newtons_inverse(power10)'+parameter,'','exec')
+	log10_3 = compile('binarysearch_inverse(power10)'+parameter,'','exec')
+	cProfile.run(log10)
+	cProfile.run(log10_2)
+	cProfile.run(log10_3)
 	
 	print 'cube root ---------------'
-	cProfile.run('cuberoot(1000000000)')
-	cProfile.run('cuberoot2(1000000000)')
-	cProfile.run('cuberoot3(1000000000)')
+	cuberoot=compile('slow_inverse(lambda x: x*x*x)'+parameter,'','exec')
+	cuberoot2=compile('newtons_inverse(lambda x: x*x*x)'+parameter,'','exec')
+	cuberoot3=compile('binarysearch_inverse(lambda x: x*x*x)'+parameter,'','exec')
+	cProfile.run(cuberoot)
+	cProfile.run(cuberoot2)
+	cProfile.run(cuberoot3)
 	
 if __name__ == '__main__':
-	# sqrt = slow_inverse(square)
-	# sqrt2 = newtons_inverse(square)
-	# sqrt3 = binarysearch_inverse(square)
-	
-	# log10 = slow_inverse(power10)
-	# log10_2 = newtons_inverse(power10)
-	# log10_3 = binarysearch_inverse(power10)
-	
-	# cuberoot=slow_inverse(lambda x: x*x*x)
-	# cuberoot2=newtons_inverse(lambda x: x*x*x)
-	# cuberoot3=binarysearch_inverse(lambda x: x*x*x)
-	
-	# test_profile()
-	test()
+
+	test_profile()
+	# test()
 	# import cProfile
 	# cProfile.run('test_time()')
