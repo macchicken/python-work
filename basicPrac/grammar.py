@@ -175,6 +175,22 @@ def verify(G):
     show('Suspects', [t for t in (rhstokens-lhstokens) if t.isalnum()])
     show('Orphans ', lhstokens-rhstokens)
 
+
+## Unit 3 Homework: parse/convert str regular expression to API
+## "(a|b)?+" ---> plus(opt(alt(lit('a'),lit('b'))))
+REGRAMMER=grammar("""
+RE => ## your description here
+""", whitespace='')
+
+def parss_re(pattern):
+	return convert(parse('RE',pattern,REGRAMMER))
+
+def convert(tree):
+	# your code here
+	return None
+
+
+
 if __name__ == '__main__':
     print "parsing expression---"
 	# print(G)
