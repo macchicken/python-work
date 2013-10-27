@@ -187,7 +187,15 @@ def parss_re(pattern):
 
 def convert(tree):
 	# your code here
-	return None
+	expression,tail=tree
+	if tail!='': return None
+	else: return append_expr(expression)
+
+def append_expr(expression):
+	l=len(expression)
+	if l==4: return expression[0]+'('+append_expr(expression[1])+expression[2]+append_expr(expression[3])+')'
+	elif l==2: return expression[0]+'('+append_expr(expression[1])+')'
+	else: return expression
 
 
 
@@ -201,3 +209,7 @@ if __name__ == '__main__':
     # print(URL)
     # verify(URL)
     print(parse('url', 'http://www.w3.org/Addressing/URL/5_BNF.html', URL))
+	
+    print "\nconverting tree---"
+    tree=(['Exp', ['Term', ['Factor', ['Num', '3']], '*', ['Term', ['Factor', ['Var', 'x']]]], '+', ['Exp', ['Term', ['Factor', ['Var', 'b']]]]], '')
+    print convert(tree)
