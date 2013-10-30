@@ -195,7 +195,7 @@ def append_expr(expression):
 	l=len(expression)
 	if l==4: return expression[0]+'('+append_expr(expression[1])+expression[2]+append_expr(expression[3])+')'
 	elif l==2: return expression[0]+'('+append_expr(expression[1])+')'
-	else: return expression
+	else: return expression[0]
 
 
 
