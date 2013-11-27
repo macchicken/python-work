@@ -173,15 +173,17 @@ def downloadMsnPicData():
 
 def main():
 	cmdparse=ArgumentParser(description='download image files from url file')
-	cmdparse.add_argument('--netease',dest='netease',default=False,action='store_true')
-	cmdparse.add_argument('--msn',dest='msn',default=False,action='store_true')
-	cmdparse.add_argument('--yahoo',dest='yahoo',default=False,action='store_true')
-	cmdparse.add_argument('--911pop',dest='pop',default=False,action='store_true')
+	group=cmdparse.add_mutually_exclusive_group()
+	group.add_argument('-n','--netease',dest='netease',default=False,action='store_true',help="download 163 web pics")
+	group.add_argument('-m','--msn',dest='msn',default=False,action='store_true',help="download msn web pics")
+	group.add_argument('-y','--yahoo',dest='yahoo',default=False,action='store_true',help="download yahoo web pics")
+	group.add_argument('-911','--911pop',dest='pop',default=False,action='store_true',help="download 911pop web pics")
 	args=cmdparse.parse_args()
-	if args.netease:download163galleryData(mutiltask=True)
-	if args.msn:downloadMsnPicData()
-	if args.yahoo:downloadYahooPicData()
-	if args.pop:download911PopData()
+	if args.netease: download163galleryData(mutiltask=True)
+	elif args.msn: downloadMsnPicData()
+	elif args.yahoo: downloadYahooPicData()
+	elif args.pop: download911PopData()
+	else: print 'at least one argument,type -h for help messages'
 
 if __name__ == '__main__':
 	# print transferSuffix('attachment;ttttfilename=news_pic.JPG.jpg')
