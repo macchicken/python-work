@@ -9,6 +9,7 @@ from filecmp import dircmp
 from os import getcwd
 from itertools import permutations
 import hashlib
+from sys import argv
 
 def c(sequence):
 	for item in sequence:
@@ -97,18 +98,8 @@ def hashfile(fileName,blockNum=128):
 			hasher.update(chunk)
 	return hasher.hexdigest()
 
-def sha1OfFile(filepath):
-	with open(filepath, 'rb') as f:
-		return hashlib.sha1(f.read()).hexdigest()
-
-def sha512OfFile(filepath):
-	with open(filepath, 'rb') as f:
-		return hashlib.sha512(f.read()).hexdigest()
-
-def shaOfFile(filepath,flag='hash'):
-	if flag=='sha1': return sha1OfFile(filepath)
-	elif flag=='sha512': return sha512OfFile(filepath)
-	else: return hashfile(filepath)
+def fileChecksum():
+	print 'file md5:',hashfile(argv[1]);
 
 if __name__ == '__main__':
 	# dirc_a='L:\\barry-document'
@@ -119,6 +110,5 @@ if __name__ == '__main__':
 	# writeGoogleDisFile()
 	# guessStr=['石','银','快','环','宇','联','花','递','新','园','给','流','有','球','浪','闻','宙','河','凰','播','星','人','陨','凤']
 	# chineseWordCombinations(guessStr)
-	print 'SHA1 checksum: '+shaOfFile('C:\\Users\\chenhui\\Desktop\\mkvtoolnix-unicode-6.5.0-1.7z','sha1')
-	print 'sha512 checksum: '+shaOfFile('C:\\Users\\chenhui\\Desktop\\mkvtoolnix-unicode-6.5.0-1.7z','sha512')
+	fileChecksum()
 	pass
