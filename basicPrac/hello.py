@@ -18,8 +18,6 @@ and run Python code; now you just need to learn Python!
 """
 
 import sys
-from datetime import date
-from datetime import timedelta
 
 # Define a main() function that prints a little greeting.
 def main():
@@ -30,17 +28,6 @@ def main():
     name = 'World'
   print 'Hello', name
 
-def calWorkingDates(beginDay=date.today()):
-	today=date.today()
-	workingDates=0
-	while(beginDay<=today):
-		weekday=beginDay.isoweekday()
-		if (weekday!=6 and weekday!=7):#is not wed and sunday
-			workingDates+=1
-		beginDay+=timedelta(days=1)
-	return "workingDates",workingDates
-
 # This is the standard boilerplate that calls the main() function.
 if __name__ == '__main__':
   main()
-  print calWorkingDates(date(2014,9,16))
