@@ -2,6 +2,7 @@ from datetime import date
 from datetime import timedelta
 
 weekdayMapping={1:"Monday",2:"Tuesday",3:"Wednesday",4:"Thursday",5:"Friday",6:"Saturday",7:"Sunday"}
+daySalary=300
 
 def calWorkingDates(beginDay=date.today(),endDay=date.today()):
 	workingDatesCount=0
@@ -30,6 +31,9 @@ def readInholidays():
 	return holidays,specialworkingDays
 
 if __name__ == '__main__':
-  workingDatesCount,workingDates=calWorkingDates(beginDay=date(2014,9,16))
-  print "sum of working days: "+str(workingDatesCount)
+  dateStr=raw_input("working date begin at for this month(yyyy-mm-dd)").replace(' ','').split('-')
+  workingDatesCount,workingDates=calWorkingDates(beginDay=date(int(dateStr[0]),int(dateStr[1]),int(dateStr[2])))
+  offdays=eval(raw_input("day off"))
+  print "sum of expected working days: "+str(workingDatesCount)
   print workingDates
+  print "total salary of current month: "+str((workingDatesCount-offdays)*daySalary)
