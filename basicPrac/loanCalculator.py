@@ -104,7 +104,7 @@ def fundTrading(buyMoneyNum,price,rate,operation):
 		return [("赎回费用",paymoney),("赎回金额",rewardmoney)]
 	return []
 
-def main(calculator="1"):
+def main(calculator):
 	if (calculator=="1"): loan()
 	elif (calculator=="2"):
 		buyMoneyNum=raw_input("金额")
