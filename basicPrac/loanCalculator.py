@@ -3,6 +3,11 @@ import math
 import decimal
 
 # from CCB CHINA CONSTRUCTION BANK
+# python stores floating-point number as 8-digit precision, if the precised calculation is needed,
+# we could get the actual number storage by using decimal module, that is what python stores
+# the number actually
+
+
 """
 monthInterest 每月应付利息
 monthBack 每月支付本息
@@ -46,7 +51,7 @@ def estateBorrow1(original,active,yearSpan):
 	moneyTotal=float(original)+interestTotal
 	return [("等额本金还款",":"),("累计支付利息",interestTotal),("累计还款总额",moneyTotal)]
 
-def main():
+def loan():
 	original=raw_input("贷款金额")
 	yearSpan=raw_input("详细期限(年)")
 	active=raw_input("贷款利率(年利率)%")
@@ -64,5 +69,51 @@ def main():
 	for key,value in result: print key,value
 
 
+# 基金买卖计算器 只涵盖前端交易
+"""
+buyMoneyNum 金额(元)
+price 价格(元)
+rate 交易费率(%)
+operation 操作 1-认购 2-申购 3-赎回
+"""
+def fundTrading(buyMoneyNum,price,rate,operation):
+	buyMoneyNum=decimal.Decimal(buyMoneyNum)
+	price=decimal.Decimal(price)
+	rate=decimal.Decimal(rate)
+	# operation=operation.strip()
+	if operation=="1":
+		r1=buyMoneyNum/(1+rate/hundred) #净申购金额
+		resultT1=buyMoneyNum-r1
+		resultT2=r1/price
+		paymoney=round(resultT1*hundred)/100 #申购费用
+		buynum=round(resultT2*hundred)/100 #申购金额
+		return [("申购费用",paymoney),("申购金额",buynum)]
+	elif operation=="2":#认购---和申购计算算法完全一致
+		r1=buyMoneyNum/(1+rate/hundred) #净申购金额
+		resultT1=buyMoneyNum-r1
+		resultT2=r1/price
+		paymoney=round(resultT1*hundred)/100 #申购费用
+		buynum=round(resultT2*hundred)/100 #申购金额
+		return [("申购费用",paymoney),("申购金额",buynum)]
+	elif operation=="3":
+		r1=buyMoneyNum*price #赎回总额
+		resultT1=r1*(rate/hundred)
+		resultT2=r1-resultT1
+		paymoney=round(resultT1*hundred)/100 #赎回费用 申购费用
+		rewardmoney=round(resultT2*hundred)/100 #赎回金额
+		return [("赎回费用",paymoney),("赎回金额",rewardmoney)]
+	return []
+
+def main(calculator="1"):
+	if (calculator=="1"): loan()
+	elif (calculator=="2"):
+		buyMoneyNum=raw_input("金额")
+		price=raw_input("价格")
+		rate=raw_input("交易费率")
+		operation=raw_input("操作选择1-认购 2-申购 3-赎回")
+		result=fundTrading(buyMoneyNum,price,rate,operation.strip())
+		for key,value in result: print key,value
+
 if __name__ == '__main__':
-	main()
+	calculator=raw_input("1-个人贷款计算器 2-基金买卖计算器")
+	main(calculator.strip())
