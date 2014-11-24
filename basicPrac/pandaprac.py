@@ -17,13 +17,8 @@ class DataStorage(object):
 		fileiopractices.c.items=0
 	
 	def loadData(self,*parameters):
-		result=[]
-		for price in fileiopractices.c(self.pPrices):
-			temp=loanCalculator.fundTrading(parameters[0],price,parameters[1],str(parameters[2]))
-			key,value=temp[0]
-			key2,value2=temp[1]
-			result.append((value,value2))
-		return result
+		ts=[tuple(loanCalculator.fundTrading(parameters[0],price,parameters[1],str(parameters[2]))) for price in fileiopractices.c(self.pPrices)]
+		return [(v,v2) for (k,v),(k2,v2) in ts]
 	
 	def setStorage(self):
 		pcol=pd.Categorical(self.pPrices)
@@ -78,10 +73,10 @@ class DataStorage(object):
 		temp=pd.DataFrame({attr_a:acol,attr_b:bcol,'rewardmoney':ccol})
 		temp.plot()
 		plt.show()
-	
 
 
-if __name__ == '__main__':
+
+if __name__ == '__main__':z
 	dataStorage=DataStorage(5,10000,3)
 	dataStorage.setStorage()
 	# dataStorage.sortByvalues('Price')
