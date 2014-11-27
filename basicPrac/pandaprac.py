@@ -37,9 +37,10 @@ class DataStorage(object):
 		return self.fundTrade
 
 	def searchByIndex(self,*index):
-		if (len(index)==0): return self.fundTrade.loc[[self.buyMoneyNum],:]
-		else: 
-			return self.fundTrade.loc[index,:]
+		try:
+			if (len(index)==0): return self.fundTrade.loc[[self.buyMoneyNum],:]
+			else: return self.fundTrade.loc[index,:]
+		except KeyError: return None
 	def searchByPos(self,start,end=None):
 		if start<0:start=0
 		if end==None: return self.fundTrade.iloc[start]
@@ -83,14 +84,14 @@ class DataStorage(object):
 
 
 if __name__ == '__main__':
-	dataStorage=DataStorage(10000,100,1.5)
+	dataStorage=DataStorage(buyMoneyNum=10000,price=100,rate=1.5)
 	dataStorage.setStorage()
 	# print dataStorage.load()
 	# dataStorage.sortByvalues('buyMoneyNumber')
 	# dataStorage.getColValues('Time')
-	# dataStorage.searchByIndexRange(100,300,'subscribe','Time')
+	# dataStorage.searchByIndexRange(10000,30000,'subscribe','Time')
 	# dataStorage.updateByIndex(pd.Timestamp('20141130'),'Time',100,200)
-	# dataStorage.searchByIndex(100,200)
+	# dataStorage.searchByIndex(10000,20000)
 	# dataStorage.updateByPos(pd.Timestamp('20141130'),2,2)
 	# dataStorage.searchByPos(0,3)
 	# dataStorage.searchByCondition('>','buyMoneyNumber',500)
