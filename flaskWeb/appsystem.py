@@ -49,4 +49,5 @@ def logout():
 
 
 if __name__ == '__main__':
-	flaskr.app.run(host="127.0.0.1", port=20000,debug=flaskr.DEBUG)
+	DEBUG=flaskr.app.config['DEBUG']
+	flaskr.app.run(host="127.0.0.1", port=20000,debug=DEBUG)
