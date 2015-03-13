@@ -1,6 +1,4 @@
-import sqlite3
-from contextlib import closing
-from flask import Flask, request, session, g, redirect, url_for, \
+from flask import request, session, g, redirect, url_for, \
     abort, render_template, flash
 import flaskr
 
@@ -8,20 +6,21 @@ import flaskr
 
 @flaskr.app.route('/helloWorld')
 def helloWorld():
-	print g.db
 	return 'Hello World!'
 
 @flaskr.app.route('/showEntries')
 def show_entries():
-    cur = g.db.execute('select title, text from entries order by id desc')
-    entries = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
-    return render_template('show_entries.html', entries=entries)
+	g.db=flaskr.connect_db()
+	cur = g.db.execute('select title, text from entries order by id desc')
+	entries = [dict(title=row[0], text=row[1]) for row in cur.fetchall()]
+	return render_template('show_entries.html', entries=entries)
 
 @flaskr.app.route('/addEntry', methods=['POST'])
 def add_entry():
 	if not session.get('logged_in'): abort(401)
 	print request.form['title']
 	print request.form['text']
+	g.db=flaskr.connect_db()
 	g.db.execute('insert into entries (title, text) values (?, ?)', [request.form['title'], request.form['text']])
 	g.db.commit()
 	flash('New entry was successfully posted')
