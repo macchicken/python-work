@@ -5,10 +5,10 @@ from Config import DevelopmentConfig
 
 
 
-
 # create our little application :)
 app = Flask(__name__)
 app.config.from_object(DevelopmentConfig)
+app.logger.addHandler(app.config['LOGHANDLER'])
 
 def connect_db():
 	return sqlite3.connect(app.config['DATABASE'])
