@@ -32,5 +32,5 @@ def tcpServerFunc():
 
 
 if __name__ == '__main__':
-	# udpServerFunc()
-	tcpServerFunc()
+	udpServerFunc()
+	# tcpServerFunc()
