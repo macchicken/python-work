@@ -15,8 +15,12 @@ def udpServerFunc():
 	s.bind((HOST, PORT))
 	while True:
 		rand=random.randint(0, 10)
-		message, clientAddress = s.recvfrom(2048)
-		if not message: continue
+		try:
+			message, clientAddress = s.recvfrom(2048)
+			if not message: continue
+		except socket.error:
+			print 'receive error'
+			continue
 		printServerInfo(message, clientAddress)
 		message=message.upper()
 		if rand<4: continue # If rand is less is than 4, we consider the packet lost and do not respond
@@ -30,8 +34,12 @@ def tcpServerFunc():
 	conn, addr = s.accept()
 	while True:
 		rand=random.randint(0, 10)
-		message, (clientAddress,w) = conn.recvfrom(2048)
-		if not message: conn.close();conn, addr = s.accept();continue
+		try:
+			message, (clientAddress,w) = conn.recvfrom(2048)
+			if not message: conn.close();conn, addr = s.accept();continue
+		except socket.error:
+			print 'receive error'
+			continue
 		printServerInfo(message, addr)
 		message=message.upper()
 		if rand<4: continue # If rand is less is than 4, we consider the packet lost and do not respond
