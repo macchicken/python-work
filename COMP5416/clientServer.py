@@ -61,8 +61,12 @@ class ClientServer(object):
 			s.bind((self.serverhost, self.port))
 			while True:
 				rand=random.randint(0, 10)
-				message, clientAddress = s.recvfrom(2048)
-				if not message: continue
+				try:
+					message, clientAddress = s.recvfrom(2048)
+					if not message: continue
+				except socket.error:
+					print 'receive error'
+					continue
 				self.__printServerInfo(message, clientAddress)
 				message=message.upper()
 				if rand<4: continue # If rand is less is than 4, we consider the packet lost and do not respond
@@ -74,8 +78,13 @@ class ClientServer(object):
 			s.listen(5)
 			conn, addr = s.accept()
 			while True:
-				message, (w,clientAddress) = conn.recvfrom(2048)
-				if not message: conn.close();conn, addr = s.accept();continue
+				rand=random.randint(0, 10)
+				try:
+					message, (w,clientAddress) = conn.recvfrom(2048)
+					if not message: conn.close();conn, addr = s.accept();continue
+				except socket.error:
+					print 'receive error'
+					continue
 				self.__printServerInfo(message, addr)
 				message=message.upper()
 				if rand<4: continue # If rand is less is than 4, we consider the packet lost and do not respond
