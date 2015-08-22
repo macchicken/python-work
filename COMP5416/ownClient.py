@@ -4,31 +4,31 @@ import datetime
 import time
 import decimal
 
-HOST = 'localhost'    # The remote host 192.241.218.95
+HOST = 'localhost'    # The remote host
 PORT = 12000          # The same port as used by the server
-PINGTIMES=10		  # ping times used in the client
+PINGTIMES=50		  # ping times used in the client
 rtts=[]				  # list of rtt of each ping
 
 
 def printClientInfo(modifiedMessage,serverAddress,startTime): # print information of client at each ping
-	print 'server address=', serverAddress
-	print 'Received=', repr(modifiedMessage)
+	# print 'server address=', serverAddress
+	# print 'Received=', repr(modifiedMessage)
 	end = datetime.datetime.now()
 	interval=end-startTime
-	rtt=int(interval.total_seconds()*1000)
-	print 'round trip time=',rtt
+	rtt=decimal.Decimal(interval.total_seconds()*1000)/decimal.Decimal(1000)
+	print 'Recived %s, round trip time %fs' %(modifiedMessage,rtt)
 	rtts.append(rtt)
 
 def stats(): # report the packet loss rate
 	rtts.sort()
 	totaltimes=len(rtts)
-	print 'minimum rtt=',rtts[0]
-	print 'maximum rtt=',rtts[totaltimes-1]
+	print 'minimum rtt %fs' % rtts[0]
+	print 'maximum rtt %fs' % rtts[totaltimes-1]
 	total=0
 	for rtt in rtts:
 		total=total+rtt
-	print 'average RTTs=', (decimal.Decimal(total)/decimal.Decimal(totaltimes))
-	print "packet loss rate=%f%%" % (((decimal.Decimal(PINGTIMES)-decimal.Decimal(totaltimes))/decimal.Decimal(PINGTIMES))*100)
+	print 'average RTTs %fs' % (decimal.Decimal(total)/decimal.Decimal(totaltimes))
+	print "packet loss rate %f%%" % (((decimal.Decimal(PINGTIMES)-decimal.Decimal(totaltimes))/decimal.Decimal(PINGTIMES))*100)
 	
 def udpClientFunc():
 	mess=raw_input('what\'s your data?\n')
