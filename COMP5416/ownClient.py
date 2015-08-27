@@ -6,7 +6,7 @@ import decimal
 
 HOST = 'localhost'    # The remote host
 PORT = 12000          # The same port as used by the server
-PINGTIMES=50		  # ping times used in the client
+PINGTIMES=2		  # ping times used in the client
 rtts=[]				  # list of rtt of each ping
 
 
@@ -59,9 +59,9 @@ def tcpClientFunc():
 			clientSocket.sendall(mess)
 			modifiedMessage,(serverAddress,w) = clientSocket.recvfrom(2048)
 			printClientInfo(modifiedMessage,serverAddress,start)
-		except socket.timeout:
+		except socket.timeout as ste:
 			print 'Request time out'
-		except socket.error:
+		except socket.error as se:
 			print 'remote server error'
 		clientSocket.close()
 		time.sleep(2)
@@ -69,5 +69,5 @@ def tcpClientFunc():
 
 
 if __name__ == '__main__':
-	udpClientFunc()
-	# tcpClientFunc()
+	# udpClientFunc()
+	tcpClientFunc()
