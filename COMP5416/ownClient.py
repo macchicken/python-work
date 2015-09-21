@@ -4,9 +4,9 @@ import datetime
 import time
 import decimal
 
-HOST = 'localhost'    # The remote host
+HOST = 'localhost'    # The remote host 23.99.108.54
 PORT = 12000          # The same port as used by the server
-PINGTIMES=2		  # ping times used in the client
+PINGTIMES=10		  # ping times used in the client
 rtts=[]				  # list of rtt of each ping
 
 
@@ -69,5 +69,5 @@ def tcpClientFunc():
 
 
 if __name__ == '__main__':
-	# udpClientFunc()
-	tcpClientFunc()
+	udpClientFunc()
+	# tcpClientFunc()
