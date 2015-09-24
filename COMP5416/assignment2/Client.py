@@ -1,6 +1,7 @@
 import ttk
 import tkMessageBox
 import socket
+import threading
 from RTPConstants import *
 
 class Client:
@@ -14,9 +15,11 @@ class Client:
 		self.fileName=fileName
 		self.createWidgets()
 		self.seqNumber=0
-		self.sentRequest=READY
-		self.sessionId=0
+		self.state=Cstate.INIT
+		self.event=ActionEvents.TEARDOWN
+		self.sessionId="0"
 		self.rtspSocket=None
+		self.rtpSocket=None
 		
 	def createWidgets(self):
 		mainframe = ttk.Frame(self.master, padding="3 3 12 12")
@@ -28,70 +31,97 @@ class Client:
 		labelframe.columnconfigure(0, weight=1)
 		labelframe.rowconfigure(0, weight=1)
 		
-		self.setup = ttk.Button(mainframe, text="Init", width=20,command=self.initMovie).grid(column=0, row=1, sticky=E,padx=2, pady=2)
+		self.setup = ttk.Button(mainframe, text="Setup", width=20,command=self.setupMovie).grid(column=0, row=1, sticky=E,padx=2, pady=2)
 		self.play = ttk.Button(mainframe, text="Play", width=20,command=self.playMovie).grid(column=1, row=1, sticky=E,padx=2, pady=2)
 		self.pause = ttk.Button(mainframe, text="Pause", width=20,command=self.pauseMovie).grid(column=2, row=1, sticky=E,padx=2, pady=2)
-		self.close = ttk.Button(mainframe, text="Close", width=20,command=self.closeStream).grid(column=3, row=1, sticky=E,padx=2, pady=2)
+		self.close = ttk.Button(mainframe, text="Teardown", width=20,command=self.teardown).grid(column=3, row=1, sticky=E,padx=2, pady=2)
 		self.label = ttk.Label(labelframe).grid(column=0, row=0, columnspan=4,sticky=W+E+N+S,padx=5, pady=5)
 		
-	def initMovie(self):
-		if self.sentRequest==SETUP or self.sentRequest==READY or self.sentRequest==CONNECTERROR:
+	def setupMovie(self):
+		if self.state==Cstate.INIT or self.state==Cstate.CONNECTERROR:
 			print 'connect to remote stream server'
-			if self.rtspSocket is not None: self.rtspSocket.close()
-			self.rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			try:
-				self.rtspSocket.connect((self.serverAddr, self.serverPort))
-				print 'setup moive'
-				self.seqNumber=self.seqNumber+1
-				request='init '+self.fileName+' '+VERSION
-				request+="\nSeq: "+str(self.seqNumber)
-				request+="\nTransport: %s; client_port= %d" % (TRANSPORT,self.rtpPort)
-				self.rtspSocket.send(request)
-				self.sentRequest=SETUP
+				if self.rtspSocket is None:
+					self.rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# use TCP for rtsp packets
+					self.rtspSocket.connect((self.serverAddr, self.serverPort))
+					print 'setup moive'
+					self.seqNumber=self.seqNumber+1
+					request=ActionEvents.EVSTEPUP+": "+self.fileName+' '+VERSION
+					request+="\nCSeq: "+str(self.seqNumber)
+					request+="\nTransport: %s;client_port= %d" % (TRANSPORT,self.rtpPort)
+					self.rtspSocket.send(request)
+					self.event=ActionEvents.SETUP
+					self.state=Cstate.READY
+					threading.Thread(target=self.recvRtspReply).start()
 			except:
-				self.sentRequest=CONNECTERROR
+				self.state=Cstate.CONNECTERROR
+				self.event=ActionEvents.TEARDOWN
+				self.rtspSocket=None
 				tkMessageBox.showwarning('Connection Failed', 'Connection to \'%s\' failed.' %self.serverAddr)
 		
 		
 	def playMovie(self):
-		if self.sentRequest==SETUP or self.sentRequest==PAUSE:
+		if self.state==Cstate.READY:
 			print 'play moive'
-			if self.rtspSocket is not None and self.sentRequest!=CONNECTERROR:
+			if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR:
 				self.seqNumber=self.seqNumber+1
-				request='play '+self.fileName+' '+VERSION
-				request+="\nSeq: "+str(self.seqNumber)
-				request+="\nSession: "+ str(self.sessionId)
+				request=ActionEvents.EVPLAY+": "+self.fileName+' '+VERSION
+				request+="\nCSeq: "+str(self.seqNumber)
+				request+="\nSession: "+ self.sessionId
 				self.rtspSocket.send(request)
-				self.sentRequest=PLAY
+				self.event=ActionEvents.PLAY
+				self.state=Cstate.PLAYING
 				print '\nData sent:' + request
-	
+
 	def pauseMovie(self):
-		if self.sentRequest==PLAY:
+		if self.state==Cstate.PLAYING:
 			print 'pause moive'
-			if self.rtspSocket is not None and self.sentRequest!=CONNECTERROR:
+			if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR:
 				self.seqNumber=self.seqNumber+1
-				request='pause '+self.fileName+' '+VERSION
-				request+="\nSeq: "+ str(self.seqNumber)
-				request+="\nSession: "+ str(self.sessionId)
+				request=ActionEvents.EVPAUSE+": "+self.fileName+' '+VERSION
+				request+="\nCSeq: "+ str(self.seqNumber)
+				request+="\nSession: "+ self.sessionId
 				self.rtspSocket.send(request)
-				self.sentRequest=PAUSE
+				self.event=ActionEvents.PAUSE
+				self.state=Cstate.READY
+				print "\nData sent:" + request
+
+	def teardown(self):
+		if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR and (self.state==Cstate.PLAYING or self.state==Cstate.READY):
+			try:
+				print 'close stream'
+				self.seqNumber=self.seqNumber+1
+				request=ActionEvents.EVTEARDOWN+": "+self.fileName+' '+VERSION
+				request+="\nCSeq: "+ str(self.seqNumber)
+				request+="\nSession: "+ self.sessionId
+				self.rtspSocket.send(request)
+				self.event=ActionEvents.TEARDOWN
+				self.state=Cstate.INIT
 				print '\nData sent:' + request
-	
-	def closeStream(self):
-		if self.rtspSocket is not None and self.sentRequest!=CONNECTERROR and self.sentRequest!=CLOSE:
-			print 'close stream'
-			self.seqNumber=self.seqNumber+1
-			request="close "+self.fileName+' '+VERSION
-			request+="\nSeq: "+ str(self.seqNumber)
-			request+="\nSession: "+ str(self.sessionId)
-			self.rtspSocket.send(request)
-			self.sentRequest=CLOSE
-			print '\nData sent:' + request
-	
+			except:
+				print "close stream error"
+
 	def exitClient(self):
 		self.pauseMovie()
 		if tkMessageBox.askokcancel("Quit?", "Are you sure you want to quit?"):
-			self.closeStream()
+			self.teardown()
 			self.master.destroy()
 		else:
 			self.playMovie()
+
+	def recvRtspReply(self):
+		while True:
+			reply = self.rtspSocket.recv(RTSPBUFFERSIZE)
+			if reply:
+				self.parseRtspReply(reply)
+			if self.event == ActionEvents.TEARDOWN:
+				self.rtspSocket.shutdown(socket.SHUT_RDWR)
+				self.rtspSocket.close()
+				self.rtspSocket=None
+				break
+
+	def parseRtspReply(self,replyData):
+		print replyData
+		temp=replyData.split("\n")
+		self.sessionId=temp[2].split()[1]
+		
