@@ -3,6 +3,7 @@ import tkMessageBox
 import socket
 import threading
 from RTPConstants import *
+from MyTools import *
 
 class Client:
 	
@@ -39,17 +40,18 @@ class Client:
 		
 	def setupMovie(self):
 		if self.state==Cstate.INIT or self.state==Cstate.CONNECTERROR:
-			print 'connect to remote stream server'
+			pringLogToConsole("connect to remote stream server")
 			try:
 				if self.rtspSocket is None:
 					self.rtspSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)# use TCP for rtsp packets
 					self.rtspSocket.connect((self.serverAddr, self.serverPort))
-					print 'setup moive'
+					pringLogToConsole("setup moive")
 					self.seqNumber=self.seqNumber+1
-					request=ActionEvents.EVSTEPUP+": "+self.fileName+' '+VERSION
+					request=ActionEvents.EVSTEPUP+": "+self.fileName+' '+RTSPVERSION
 					request+="\nCSeq: "+str(self.seqNumber)
-					request+="\nTransport: %s;client_port= %d" % (TRANSPORT,self.rtpPort)
+					request+="\nTransport: %s;client_port= %d" % (RTPTRANSPORT,self.rtpPort)
 					self.rtspSocket.send(request)
+					pringLogToConsole(request)
 					self.event=ActionEvents.SETUP
 					self.state=Cstate.READY
 					threading.Thread(target=self.recvRtspReply).start()
@@ -62,44 +64,51 @@ class Client:
 		
 	def playMovie(self):
 		if self.state==Cstate.READY:
-			print 'play moive'
 			if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR:
-				self.seqNumber=self.seqNumber+1
-				request=ActionEvents.EVPLAY+": "+self.fileName+' '+VERSION
-				request+="\nCSeq: "+str(self.seqNumber)
-				request+="\nSession: "+ self.sessionId
-				self.rtspSocket.send(request)
-				self.event=ActionEvents.PLAY
-				self.state=Cstate.PLAYING
-				print '\nData sent:' + request
+				try:
+					pringLogToConsole("play moive")
+					self.seqNumber=self.seqNumber+1
+					request=ActionEvents.EVPLAY+": "+self.fileName+' '+RTSPVERSION
+					request+="\nCSeq: "+str(self.seqNumber)
+					request+="\nSession: "+ self.sessionId
+					self.rtspSocket.send(request)
+					self.event=ActionEvents.PLAY
+					self.state=Cstate.PLAYING
+					pringLogToConsole(request)
+				except:
+					pringLogToConsole("play movie error")
 
 	def pauseMovie(self):
 		if self.state==Cstate.PLAYING:
-			print 'pause moive'
 			if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR:
-				self.seqNumber=self.seqNumber+1
-				request=ActionEvents.EVPAUSE+": "+self.fileName+' '+VERSION
-				request+="\nCSeq: "+ str(self.seqNumber)
-				request+="\nSession: "+ self.sessionId
-				self.rtspSocket.send(request)
-				self.event=ActionEvents.PAUSE
-				self.state=Cstate.READY
-				print "\nData sent:" + request
+				try:
+					pringLogToConsole("pause moive")
+					self.seqNumber=self.seqNumber+1
+					request=ActionEvents.EVPAUSE+": "+self.fileName+' '+RTSPVERSION
+					request+="\nCSeq: "+ str(self.seqNumber)
+					request+="\nSession: "+ self.sessionId
+					self.rtspSocket.send(request)
+					self.event=ActionEvents.PAUSE
+					self.state=Cstate.READY
+					pringLogToConsole(request)
+				except:
+					pringLogToConsole("pause movie erro")
 
 	def teardown(self):
 		if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR and (self.state==Cstate.PLAYING or self.state==Cstate.READY):
 			try:
-				print 'close stream'
+				pringLogToConsole("tear down")
 				self.seqNumber=self.seqNumber+1
-				request=ActionEvents.EVTEARDOWN+": "+self.fileName+' '+VERSION
+				request=ActionEvents.EVTEARDOWN+": "+self.fileName+' '+RTSPVERSION
 				request+="\nCSeq: "+ str(self.seqNumber)
 				request+="\nSession: "+ self.sessionId
 				self.rtspSocket.send(request)
 				self.event=ActionEvents.TEARDOWN
 				self.state=Cstate.INIT
-				print '\nData sent:' + request
+				self.seqNumber=0
+				pringLogToConsole(request)
 			except:
-				print "close stream error"
+				pringLogToConsole("tear down error")
 
 	def exitClient(self):
 		self.pauseMovie()
@@ -121,7 +130,7 @@ class Client:
 				break
 
 	def parseRtspReply(self,replyData):
-		print replyData
+		pringLogToConsole(replyData)
 		temp=replyData.split("\n")
 		self.sessionId=temp[2].split()[1]
 		

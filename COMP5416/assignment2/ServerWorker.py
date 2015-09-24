@@ -4,6 +4,7 @@ from random import randint
 from VideoStream import VideoStream
 from RtpPacket import RtpPacket
 from RTPConstants import *
+from MyTools import *
 
 class ServerWorker:
 
@@ -20,14 +21,14 @@ class ServerWorker:
 				conn,(address,port)=self.clientInfo['rtspSocket']
 				data,tail = conn.recvfrom(RTSPBUFFERSIZE)
 				if data:
-					print "Data received: "+data
+					pringLogToConsole("Data received: "+data)
 					temp=data.split("\n")
 					eventType=self.getEventTypeFromRTSP(temp)
 					if eventType==ActionEvents.EVSTEPUP:
 						self.csession=randint(100000, 999999)
-					conn.send(VERSION+" 200 OK\n"+temp[1]+"\nSession: "+str(self.csession))
+					conn.send(RTSPVERSION+" 200 OK\n"+temp[1]+"\nSession: "+str(self.csession))
 			except socket.error:
-				print "receive error"
+				print pringLogToConsole("receive error")
 
 	def getEventTypeFromRTSP(self,request):
 		dataFrame=request[0].split()
