@@ -1,2 +1,2 @@
-def pringLogToConsole(logstr):
+def printLogToConsole(logstr):
 	print "\n"+logstr
