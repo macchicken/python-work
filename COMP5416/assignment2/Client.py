@@ -46,26 +46,23 @@ class Client:
 		
 	def setupMovie(self):
 		if self.state==Cstate.INIT or self.state==Cstate.CONNECTERROR:
-			printLogToConsole("connect to remote stream server")
+			# printLogToConsole("connect to remote stream server")
 			try:
+				# printLogToConsole("setup moive")
 				if self.rtspSocket is None:
 					self.rtspSocket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)# use TCP for rtsp packets
 					self.rtspSocket.connect((self.serverAddr, self.serverPort))
-					printLogToConsole("setup moive")
-					self.seqNumber=self.seqNumber+1
-					request=ActionEvents.EVSTEPUP+": "+self.fileName+' '+RTSPVERSION
-					request+="\nCSeq: "+str(self.seqNumber)
-					request+="\nTransport: %s;client_port= %d" % (RTPTRANSPORT,self.rtpPort)
-					self.rtspSocket.send(request)
-					self.event=ActionEvents.SETUP
-					printLogToConsole(request)
-					threading.Thread(target=self.recvRtspReply).start()
+				self.seqNumber=self.seqNumber+1
+				request=ActionEvents.EVSTEPUP+": "+self.fileName+' '+RTSPVERSION
+				request+="\nCSeq: "+str(self.seqNumber)
+				request+="\nTransport: %s;client_port= %d" % (RTPTRANSPORT,self.rtpPort)
+				self.rtspSocket.send(request)
+				self.event=ActionEvents.SETUP
+				printLogToConsole(request)
+				threading.Thread(target=self.recvRtspReply).start()
 			except:
 				self.state=Cstate.CONNECTERROR
 				self.event=ActionEvents.TEARDOWN
-				self.rtspSocket.shutdown(socket.SHUT_RDWR)
-				self.rtspSocket.close()
-				self.rtspSocket=None
 				tkMessageBox.showwarning('Connection Failed', 'Connection to \'%s\' failed.' %self.serverAddr)
 		
 		
@@ -73,7 +70,7 @@ class Client:
 		if self.state==Cstate.READY:
 			if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR:
 				try:
-					printLogToConsole("play moive")
+					# printLogToConsole("play moive")
 					self.seqNumber=self.seqNumber+1
 					request=ActionEvents.EVPLAY+": "+self.fileName+' '+RTSPVERSION
 					request+="\nCSeq: "+str(self.seqNumber)
@@ -88,7 +85,7 @@ class Client:
 		if self.state==Cstate.PLAYING:
 			if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR:
 				try:
-					printLogToConsole("pause moive")
+					# printLogToConsole("pause moive")
 					self.seqNumber=self.seqNumber+1
 					request=ActionEvents.EVPAUSE+": "+self.fileName+' '+RTSPVERSION
 					request+="\nCSeq: "+ str(self.seqNumber)
@@ -102,7 +99,7 @@ class Client:
 	def teardown(self):
 		if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR and (self.state==Cstate.PLAYING or self.state==Cstate.READY):
 			try:
-				printLogToConsole("tear down")
+				# printLogToConsole("tear down")
 				self.seqNumber=self.seqNumber+1
 				request=ActionEvents.EVTEARDOWN+": "+self.fileName+' '+RTSPVERSION
 				request+="\nCSeq: "+ str(self.seqNumber)
@@ -127,9 +124,6 @@ class Client:
 			if reply:
 				self.parseRtspReply(reply)
 			if self.event == ActionEvents.TEARDOWN:
-				self.rtspSocket.shutdown(socket.SHUT_RDWR)
-				self.rtspSocket.close()
-				self.rtspSocket=None
 				break
 
 	def parseRtspReply(self,replyData):
@@ -137,13 +131,14 @@ class Client:
 		temp=replyData.strip().split("\n")
 		self.sessionId=temp[2].split()[1]
 		replyCode=temp[0].split(' ',1)[1]
-		if replyCode=="200 OK":
+		if replyCode==RESPONSE_OK:
 			if self.event==ActionEvents.SETUP:
 				self.state=Cstate.READY
 			elif self.event==ActionEvents.PLAY:
 				try:
-					self.rtpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)# use UDP for rtp packets
-					self.rtpSocket.bind(('', self.rtpPort))# listen for receiving rtp packets
+					if self.rtpSocket is None:
+						self.rtpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)# use UDP for rtp packets
+						self.rtpSocket.bind(('', self.rtpPort))# listen for receiving rtp packets
 					self.playthread=threading.Event()
 					self.playthread.clear()
 					self.state=Cstate.PLAYING
@@ -152,11 +147,9 @@ class Client:
 					printLogToConsole("start play thread error "+str(sys.exc_info()[1]))
 			elif self.event==ActionEvents.PAUSE:
 				self.playthread.set()
-				self.rtpSocket.close()
 				self.state=Cstate.READY
 			elif self.event==ActionEvents.TEARDOWN:
 				self.playthread.set()
-				self.rtpSocket.close()
 				self.state=Cstate.INIT
 				self.seqNumber=0
 

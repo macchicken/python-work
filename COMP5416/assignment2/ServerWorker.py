@@ -25,7 +25,7 @@ class ServerWorker:
 				conn,(address,port)=self.clientInfo['rtspSocket']
 				data,tail=conn.recvfrom(RTSPBUFFERSIZE)
 				if data:
-					printLogToConsole("Data received: "+data)
+					printLogToConsole(data)
 					temp=data.split("\n")
 					eventType=self.getEventTypeFromRTSP(temp)
 					if eventType==ActionEvents.EVSTEPUP:
@@ -34,7 +34,8 @@ class ServerWorker:
 						self.rtpPort=self.getRtpPortFromRTSP(temp)
 						self.clientAddr=address
 					elif eventType==ActionEvents.EVPLAY:
-						self.rtpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+						if self.rtpSocket is None:
+							self.rtpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 						self.sendRtpThread=threading.Event()
 						self.sendRtpThread.clear()
 						threading.Thread(target=self.sendRtp).start()
@@ -42,8 +43,7 @@ class ServerWorker:
 						self.sendRtpThread.set()# signal to stop the thread
 					elif eventType==ActionEvents.EVTEARDOWN:
 						self.sendRtpThread.set()
-						self.rtpSocket.close()
-					conn.send(RTSPVERSION+" 200 OK\n"+temp[1]+"\nSession: "+str(self.csession))
+					conn.send(RTSPVERSION+' '+RESPONSE_OK+"\n"+temp[1]+"\nSession: "+str(self.csession))
 			except socket.error:
 				print "\n"
 				traceback.print_exc(file=sys.stdout)
@@ -65,7 +65,7 @@ class ServerWorker:
 
 	def sendRtp(self):
 		while True:
-			if self.sendRtpThread.isSet(): print "break"; break
+			if self.sendRtpThread.isSet(): break
 			time.sleep(0.05)# pause for 50 milliseconds
 			try:
 				vidata=self.videoStream.nextFrame()
@@ -73,6 +73,9 @@ class ServerWorker:
 					rtpp=RtpPacket()
 					rtpp.encode(2,0,0,0,self.videoStream.frameNbr(),0,26,6,vidata)
 					self.rtpSocket.sendto(rtpp.getPacket(),(self.clientAddr,self.rtpPort))
+				else:
+					self.sendRtpThread.set()
+					break
 			except:
 				print "\n"
 				traceback.print_exc(file=sys.stdout)
