@@ -20,6 +20,7 @@ class ServerWorker:
 		threading.Thread(target=self.recvRtspRequest).start()
 	
 	def recvRtspRequest(self):
+		responseCode=RESPONSE_OK
 		while True:
 			try:
 				conn,(address,port)=self.clientInfo['rtspSocket']
@@ -30,9 +31,12 @@ class ServerWorker:
 					eventType=self.getEventTypeFromRTSP(temp)
 					if eventType==ActionEvents.EVSTEPUP:
 						self.csession=randint(100000, 999999)
-						self.videoStream=VideoStream(self.getVidoeFileNameFromRTSP(temp))
-						self.rtpPort=self.getRtpPortFromRTSP(temp)
-						self.clientAddr=address
+						try:
+							self.videoStream=VideoStream(self.getVidoeFileNameFromRTSP(temp))
+							self.rtpPort=self.getRtpPortFromRTSP(temp)
+							self.clientAddr=address
+						except IOError:
+							responseCode=RESPONSE_NOTFOUND
 					elif eventType==ActionEvents.EVPLAY:
 						if self.rtpSocket is None:
 							self.rtpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -43,7 +47,7 @@ class ServerWorker:
 						self.sendRtpThread.set()# signal to stop the thread
 					elif eventType==ActionEvents.EVTEARDOWN:
 						self.sendRtpThread.set()
-					conn.send(RTSPVERSION+' '+RESPONSE_OK+"\n"+temp[1]+"\nSession: "+str(self.csession))
+					conn.send(RTSPVERSION+' '+responseCode+"\n"+temp[1]+"\nSession: "+str(self.csession))
 			except socket.error:
 				print "\n"
 				traceback.print_exc(file=sys.stdout)

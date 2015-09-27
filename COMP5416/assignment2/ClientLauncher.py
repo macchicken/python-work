@@ -12,7 +12,7 @@ if __name__ == "__main__":
 		serverAddr="localhost"
 		serverPort="20000"
 		rtpPort="20001"
-		fileName="movie.Mjpeg"
+		fileName="Sample.Mjpeg"
 	except:
 		print "[Usage: ClientLauncher.py Server_name Server_port RTP_port Video_file]\n"	
 	

@@ -1,4 +1,5 @@
-import ttk,Tkinter,tkMessageBox,socket,threading,sys,traceback
+from Tkinter import *
+import tkMessageBox,socket,threading,sys,traceback,time
 from PIL import Image,ImageTk
 from RTPConstants import *
 from MyTools import *
@@ -24,25 +25,29 @@ class Client:
 		self.playthread=None
 		
 	def createWidgets(self):
-		mainframe=ttk.Frame(self.master, padding="3 3 12 12")
-		mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
-		mainframe.columnconfigure(0, weight=1)
-		mainframe.rowconfigure(0, weight=1)
-		labelframe=ttk.Frame(mainframe, padding="3 3 12 12",height=200)
-		labelframe.grid(column=0, row=0, sticky=(N, W, E, S))
-		labelframe.columnconfigure(0, weight=1)
-		labelframe.rowconfigure(0, weight=1)
+		self.setup=Button(self.master, width=20, padx=3, pady=3)
+		self.setup["text"] = "Setup"
+		self.setup["command"] = self.setupMovie
+		self.setup.grid(row=1, column=0, padx=2, pady=2)
 		
-		self.setup=ttk.Button(mainframe, text="Setup", width=20,command=self.setupMovie)
-		self.setup.grid(column=0, row=1, sticky=E,padx=2, pady=2)
-		self.play=ttk.Button(mainframe, text="Play", width=20,command=self.playMovie)
-		self.play.grid(column=1, row=1, sticky=E,padx=2, pady=2)
-		self.pause=ttk.Button(mainframe, text="Pause", width=20,command=self.pauseMovie)
-		self.pause.grid(column=2, row=1, sticky=E,padx=2, pady=2)
-		self.close=ttk.Button(mainframe, text="Teardown", width=20,command=self.teardown)
-		self.close.grid(column=3, row=1, sticky=E,padx=2, pady=2)
-		self.label=ttk.Label(labelframe)
-		self.label.grid(column=1, row=0, columnspan=4,sticky=W+E+N+S,padx=5, pady=5)
+		self.play=Button(self.master, width=20, padx=3, pady=3)
+		self.play["text"] = "Play"
+		self.play["command"] = self.playMovie
+		self.play.grid(row=1, column=1, padx=2, pady=2)
+		
+		self.pause=Button(self.master, width=20, padx=3, pady=3)
+		self.pause["text"] = "Pause"
+		self.pause["command"] = self.pauseMovie
+		self.pause.grid(row=1, column=2, padx=2, pady=2)
+		
+		self.close=Button(self.master, width=20, padx=3, pady=3)
+		self.close["text"] = "Teardown"
+		self.close["command"] = self.teardown
+		self.close.grid(row=1, column=3, padx=2, pady=2)
+		
+		self.label=Label(self.master, height=19)
+		self.label.grid(row=0, column=0, columnspan=5, sticky=W+E+N+S, padx=5, pady=5)
+
 		
 	def setupMovie(self):
 		if self.state==Cstate.INIT or self.state==Cstate.CONNECTERROR:
@@ -81,6 +86,7 @@ class Client:
 				except:
 					printLogToConsole("play movie error "+str(sys.exc_info()[1]))
 
+
 	def pauseMovie(self):
 		if self.state==Cstate.PLAYING:
 			if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR:
@@ -96,6 +102,7 @@ class Client:
 				except:
 					printLogToConsole("pause movie erro "+str(sys.exc_info()[1]))
 
+
 	def teardown(self):
 		if self.rtspSocket is not None and self.state!=Cstate.CONNECTERROR and (self.state==Cstate.PLAYING or self.state==Cstate.READY):
 			try:
@@ -110,6 +117,7 @@ class Client:
 			except:
 				printLogToConsole("tear down error "+str(sys.exc_info()[1]))
 
+
 	def exitClient(self):
 		self.pauseMovie()
 		if tkMessageBox.askokcancel("Quit?", "Are you sure you want to quit?"):
@@ -118,6 +126,7 @@ class Client:
 		else:
 			self.playMovie()
 
+
 	def recvRtspReply(self):
 		while True:
 			reply=self.rtspSocket.recv(RTSPBUFFERSIZE)
@@ -125,6 +134,7 @@ class Client:
 				self.parseRtspReply(reply)
 			if self.event == ActionEvents.TEARDOWN:
 				break
+
 
 	def parseRtspReply(self,replyData):
 		printLogToConsole(replyData)
@@ -152,6 +162,10 @@ class Client:
 				self.playthread.set()
 				self.state=Cstate.INIT
 				self.seqNumber=0
+		elif replyCode==RESPONSE_NOTFOUND:
+			self.state=Cstate.INIT
+			self.seqNumber=0
+
 
 	def parseReplyRtp(self):
 		while True:
@@ -165,7 +179,10 @@ class Client:
 					tmp=open(movieFile,"wb")# write binary
 					tmp.write(rtpp.getPayload())# write actual data
 					tmp.close()# close to commit to the file
-					self.label['image']=ImageTk.PhotoImage(Image.open(movieFile))
+					time.sleep(0.035)
+					photo=ImageTk.PhotoImage(Image.open(movieFile))
+					self.label.configure(image = photo, height=288)
+					self.label.image=photo
 			except:
 				print "\n"
 				traceback.print_exc(file=sys.stdout)
