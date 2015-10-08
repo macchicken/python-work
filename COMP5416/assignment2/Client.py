@@ -120,6 +120,8 @@ class Client:
 				self.rtspSocket.send(request)
 				self.event=ActionEvents.TEARDOWN
 				printLogToConsole(request)
+				stTime=time.clock()
+				self.playTimeElapsed=self.playTimeElapsed+stTime-self.playStartTime
 			except:
 				printLogToConsole("tear down error "+str(sys.exc_info()[1]))
 
@@ -158,6 +160,7 @@ class Client:
 					self.playthread=threading.Event()
 					self.playthread.clear()
 					self.state=Cstate.PLAYING
+					if self.playStartTime==0: self.playStartTime=time.clock()
 					threading.Thread(target=self.parseReplyRtp).start()
 				except:
 					printLogToConsole("start play thread error "+str(sys.exc_info()[1]))
@@ -176,13 +179,14 @@ class Client:
 				self.playTimeElapsed=0
 				self.loadedFrame=[]
 				self.totalFrame=0
+				self.playStartTime=0
+				self.sessionId="0"
 		elif replyCode==RESPONSE_NOTFOUND:
 			self.state=Cstate.INIT
 			self.seqNumber=0
 
 
 	def parseReplyRtp(self):
-		self.playStartTime=time.clock()
 		while True:
 			if self.playthread.isSet(): break
 			try:
@@ -196,7 +200,7 @@ class Client:
 						tmp.write(rtpp.getPayload())# write actual data
 						tmp.close()# close to commit to the file
 						self.loadedFrame.append(rtpp)
-						time.sleep(0.035)
+						time.sleep(0.05)
 						photo=ImageTk.PhotoImage(Image.open(movieFile))
 						self.label.configure(image=photo,height=288)
 						self.label.image=photo
