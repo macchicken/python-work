@@ -92,8 +92,12 @@ class ServerWorker:
 					rtpp.encode(2,0,0,0,self.videoStream.frameNbr(),0,26,6,vidata)
 					self.rtpSocket.sendto(rtpp.getPacket(),(self.clientAddr,self.rtpPort))
 				else:
+					print "end of stream"
 					self.sendRtpThread.set()
 					self.rtpSocket.sendto(RTSPVERSION+' '+RESPONSE_OK_END+"\nTotalFrame: "+str(self.videoStream.frameNbr())+"\nSession: "+str(self.csession),(self.clientAddr,self.rtpPort))
+					try:
+						self.videoStream.file.close()
+					except: print "close file error"
 					break
 			except:
 				print "\n"

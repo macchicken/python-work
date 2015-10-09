@@ -180,7 +180,7 @@ class Client:
 					self.videoSize=0
 					self.playTimeElapsed=0
 					self.loadedFrame=[]
-					self.totalFrame=0
+					self.totalFrame="0"
 					self.playStartTime=0
 					self.sessionId="0"
 					self.frameNumber=0
@@ -211,6 +211,7 @@ class Client:
 							self.label.configure(image=photo,height=288)
 							self.label.image=photo
 					else:
+						print rtpPacket
 						temp=rtpPacket.strip().split("\n")
 						self.playTimeElapsed=self.playTimeElapsed+((datetime.datetime.now()-self.playStartTime).total_seconds())
 						self.totalFrame=temp[1].split()[1]
