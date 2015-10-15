@@ -1,1 +1,1 @@
-python D:\workspace\python-work\COMP5416\assignment2\ClientLauncher.py localhost 20000 20001 Sample.Mjpeg
+python D:\workspace\python-work\COMP5416\assignment2\ClientLauncher.py localhost 20000 20001 result.Mjpeg
