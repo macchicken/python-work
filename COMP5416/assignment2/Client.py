@@ -29,7 +29,7 @@ class Client:
 		self.playStartTime=0
 		self.totalFrame="0"
 		self.frameNumber=0
-		
+		self.endOfStream=False
 		
 	def createWidgets(self):
 		self.setup=Button(self.master, width=20, padx=3, pady=3)
@@ -125,8 +125,10 @@ class Client:
 				self.rtspSocket.send(request)
 				self.event=ActionEvents.TEARDOWN
 				printLogToConsole(request)
-				stTime=datetime.datetime.now()
-				self.playTimeElapsed=self.playTimeElapsed+((stTime-self.playStartTime).total_seconds())
+				if not self.endOfStream:
+					stTime=datetime.datetime.now()
+					self.playTimeElapsed=self.playTimeElapsed+((stTime-self.playStartTime).total_seconds())
+					self.endOfStream=True
 			except:
 				printLogToConsole("tear down error "+str(sys.exc_info()[1]))
 
@@ -184,6 +186,7 @@ class Client:
 					self.playStartTime=0
 					self.sessionId="0"
 					self.frameNumber=0
+					self.endOfStream=False
 					print "back to init"
 		elif replyCode==RESPONSE_NOTFOUND:
 			self.state=Cstate.INIT
@@ -212,6 +215,7 @@ class Client:
 							self.label.image=photo
 					else:
 						print rtpPacket
+						self.endOfStream=True
 						temp=rtpPacket.strip().split("\n")
 						self.playTimeElapsed=self.playTimeElapsed+((datetime.datetime.now()-self.playStartTime).total_seconds())
 						self.totalFrame=temp[1].split()[1]
@@ -224,6 +228,6 @@ class Client:
 		print "video size: %s bytes, time elapsed: %d seconds" % (self.videoSize,int(self.playTimeElapsed))
 		if self.totalFrame!="0":
 			frameCount=len(self.loadedFrame)
-			print "client frame count: "+str(frameCount)+", total frame from server: "+self.totalFrame
+			print "client frame count: %s, total frame from server: %s" % (str(frameCount),self.totalFrame)
 			print "transfer rate: %f bit/s" % (frameCount*1.0/(self.playTimeElapsed*8))
 			print "packet loss rate: %f" % (((int(self.totalFrame)-frameCount)*1.0/int(self.totalFrame))*100)
