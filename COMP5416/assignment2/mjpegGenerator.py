@@ -21,9 +21,12 @@ class ImgbinData:
 	def __repr__(self):
 		return self.fileName
 
+# file name must be numbers
 def ImgbinDataCmp(imgb1,imgb2):
-	if imgb1.fileName<imgb2.fileName: return -1
-	elif imgb1.fileName==imgb2.fileName: return 0
+	b1=int(imgb1.fileName)
+	b2=int(imgb2.fileName)
+	if b1<b2: return -1
+	elif b1==b2: return 0
 	else: return 1
 	
 def appendZeroToFive(str):
