@@ -23,8 +23,8 @@ class ImgbinData:
 
 # file name must be numbers
 def ImgbinDataCmp(imgb1,imgb2):
-	b1=int(imgb1.fileName)
-	b2=int(imgb2.fileName)
+	b1=int(imgb1.fileName.split('.')[0])
+	b2=int(imgb2.fileName.split('.')[0])
 	if b1<b2: return -1
 	elif b1==b2: return 0
 	else: return 1
