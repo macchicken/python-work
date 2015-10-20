@@ -137,6 +137,13 @@ class Client:
 		self.pauseMovie()
 		if tkMessageBox.askokcancel("Quit?", "Are you sure you want to quit?"):
 			self.teardown()
+			if self.rtspSocket is not None:
+				self.seqNumber=self.seqNumber+1
+				request=ActionEvents.EVCLOSERTSPSOCKET+": "+self.fileName+' '+RTSPVERSION
+				request+="\nCSeq: "+ str(self.seqNumber)
+				request+="\nSession: "+ self.sessionId
+				self.rtspSocket.send(request)
+				self.rtspSocket.close()
 			self.master.destroy()
 		else:
 			self.playMovie()

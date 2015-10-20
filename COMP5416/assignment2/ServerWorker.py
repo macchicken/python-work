@@ -15,7 +15,6 @@ class ServerWorker:
 		self.rtpSocket=None
 		self.sendRtpThread=None
 		self.clientAddr=None
-		self.rtspConn=None
 		
 
 	def run(self):
@@ -25,7 +24,6 @@ class ServerWorker:
 	def recvRtspRequest(self):
 		responseCode=RESPONSE_OK
 		conn,(address,port)=self.clientInfo['rtspSocket']
-		self.rtspConn=conn
 		spath=os.path.dirname(os.path.realpath(sys.argv[0]))
 		while True:
 			try:
@@ -57,7 +55,11 @@ class ServerWorker:
 					elif eventType==ActionEvents.EVTEARDOWN:
 						if self.sendRtpThread is not None:
 							self.sendRtpThread.set()
-					conn.send(RTSPVERSION+' '+responseCode+"\n"+temp[1]+"\nSession: "+str(self.csession)+otherData)
+					elif eventType==ActionEvents.EVCLOSERTSPSOCKET:
+						conn.close()
+						conn=None
+						break
+					if conn is not None: conn.send(RTSPVERSION+' '+responseCode+"\n"+temp[1]+"\nSession: "+str(self.csession)+otherData)
 			except socket.error:
 				print "\n"
 				traceback.print_exc(file=sys.stdout)
@@ -92,12 +94,12 @@ class ServerWorker:
 					rtpp.encode(2,0,0,0,self.videoStream.frameNbr(),0,26,6,vidata)
 					self.rtpSocket.sendto(rtpp.getPacket(),(self.clientAddr,self.rtpPort))
 				else:
-					print "end of stream"
+					print "\nend of stream"
 					self.sendRtpThread.set()
 					self.rtpSocket.sendto(RTSPVERSION+' '+RESPONSE_OK_END+"\nTotalFrame: "+str(self.videoStream.frameNbr())+"\nSession: "+str(self.csession),(self.clientAddr,self.rtpPort))
 					try:
 						self.videoStream.file.close()
-					except: print "close file error"
+					except: print "\nclose file error"
 					break
 			except:
 				print "\n"
