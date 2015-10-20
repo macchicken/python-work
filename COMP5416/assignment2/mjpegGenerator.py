@@ -1,6 +1,7 @@
 import os
 import time
 
+myseparator=os.sep
 
 class ImgbinData:
 	
@@ -36,18 +37,18 @@ def appendZeroToFive(str):
 def toMjpeg(dirName="D:\\workspace\\python-work\\COMP5416\\assignment2\\test"):
 	waitingData=[]
 	for fileName in os.listdir(dirName):
-		with open(dirName+"\\"+fileName,"rb") as jpgfile:
+		with open(dirName+myseparator+fileName,"rb") as jpgfile:
 			data=jpgfile.read()
-			imglen=appendZeroToFive(str(os.path.getsize(dirName+"\\"+fileName)))
+			imglen=appendZeroToFive(str(os.path.getsize(dirName+myseparator+fileName)))
 			temp=ImgbinData(imglen,data,fileName)
 			waitingData.append(temp)
 	time.sleep(1)
 	waitingData.sort(cmp=ImgbinDataCmp)
 	time.sleep(1)
-	with open (dirName+"\\"+"result.Mjpeg","wb") as mjpegFile: 
+	with open (dirName+myseparator+"result.Mjpeg","wb") as mjpegFile: 
 		for tdata in waitingData:
 			mjpegFile.write(tdata.getImgLen())
-			print "write file length %s" % tdata.getImgLen()
+			print "write file length %s with file %s" % (tdata.getImgLen(),tdata.getFileName())
 			time.sleep(1)
 			mjpegFile.write(tdata.getRawData())
 			print "write image bin data"
