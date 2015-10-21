@@ -1,4 +1,4 @@
-import sys,threading,socket,time,traceback,os
+import sys,threading,socket,time,traceback,os,uuid
 from random import randint
 from VideoStream import VideoStream
 from RtpPacket import RtpPacket
@@ -34,7 +34,8 @@ class ServerWorker:
 					eventType=self.getEventTypeFromRTSP(temp)
 					otherData=''
 					if eventType==ActionEvents.EVSTEPUP:
-						self.csession=randint(100000, 999999)
+						# self.csession=randint(100000, 999999)
+						self.csession=''.join(str(uuid.uuid1()).split('-'))
 						try:
 							vFileName=spath+"\\"+self.getVidoeFileNameFromRTSP(temp)
 							self.videoStream=VideoStream(vFileName)
