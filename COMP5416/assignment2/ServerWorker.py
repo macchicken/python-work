@@ -1,5 +1,4 @@
 import sys,threading,socket,time,traceback,os,uuid
-from random import randint
 from VideoStream import VideoStream
 from RtpPacket import RtpPacket
 from RTPConstants import *
@@ -30,18 +29,17 @@ class ServerWorker:
 				data,tail=conn.recvfrom(RTSPBUFFERSIZE)
 				if data:
 					printLogToConsole(data)
-					temp=data.split("\n")
+					temp=data.split(MESSAGESEP)
 					eventType=self.getEventTypeFromRTSP(temp)
 					otherData=''
 					if eventType==ActionEvents.EVSTEPUP:
-						# self.csession=randint(100000, 999999)
 						self.csession=''.join(str(uuid.uuid1()).split('-'))
 						try:
 							vFileName=spath+"\\"+self.getVidoeFileNameFromRTSP(temp)
 							self.videoStream=VideoStream(vFileName)
 							self.rtpPort=self.getRtpPortFromRTSP(temp)
 							self.clientAddr=address
-							otherData="\nVsize: "+str(os.stat(vFileName).st_size)
+							otherData=MESSAGESEP+"Vsize: "+str(os.stat(vFileName).st_size)
 						except IOError:
 							responseCode=RESPONSE_NOTFOUND
 					elif eventType==ActionEvents.EVPLAY:
@@ -60,7 +58,7 @@ class ServerWorker:
 						conn.close()
 						conn=None
 						break
-					if conn is not None: conn.send(RTSPVERSION+' '+responseCode+"\n"+temp[1]+"\nSession: "+str(self.csession)+otherData)
+					if conn is not None: conn.send(RTSPVERSION+' '+responseCode+MESSAGESEP+temp[1]+MESSAGESEP+"Session: "+str(self.csession)+otherData)
 			except socket.error:
 				print "\n"
 				traceback.print_exc(file=sys.stdout)
@@ -95,12 +93,12 @@ class ServerWorker:
 					rtpp.encode(2,0,0,0,self.videoStream.frameNbr(),0,26,6,vidata)
 					self.rtpSocket.sendto(rtpp.getPacket(),(self.clientAddr,self.rtpPort))
 				else:
-					print "\nend of stream"
+					printLogToConsole("end of stream")
 					self.sendRtpThread.set()
-					self.rtpSocket.sendto(RTSPVERSION+' '+RESPONSE_OK_END+"\nTotalFrame: "+str(self.videoStream.frameNbr())+"\nSession: "+str(self.csession),(self.clientAddr,self.rtpPort))
+					self.rtpSocket.sendto(RTSPVERSION+' '+RESPONSE_OK_END+MESSAGESEP+"TotalFrame: "+str(self.videoStream.frameNbr())+MESSAGESEP+"Session: "+str(self.csession),(self.clientAddr,self.rtpPort))
 					try:
 						self.videoStream.file.close()
-					except: print "\nclose file error"
+					except: printLogToConsole("close file error")
 					break
 			except:
 				print "\n"

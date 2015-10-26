@@ -30,7 +30,8 @@ class Client:
 		self.totalFrame="0"
 		self.frameNumber=0
 		self.endOfStream=False
-		
+
+
 	def createWidgets(self):
 		self.setup=Button(self.master, width=20, padx=3, pady=3)
 		self.setup["text"] = "Setup"
@@ -64,14 +65,14 @@ class Client:
 				if self.rtspSocket is None:
 					self.rtspSocket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)# use TCP for rtsp packets
 					self.rtspSocket.connect((self.serverAddr, self.serverPort))
+				threading.Thread(target=self.recvRtspReply).start()
 				self.seqNumber=self.seqNumber+1
 				request=ActionEvents.EVSTEPUP+": "+self.fileName+' '+RTSPVERSION
-				request+="\nCSeq: "+str(self.seqNumber)
-				request+="\nTransport: %s;client_port= %d" % (RTPTRANSPORT,self.rtpPort)
+				request+=MESSAGESEP+"CSeq: "+str(self.seqNumber)
+				request+=MESSAGESEP+"Transport: %s;client_port= %d" % (RTPTRANSPORT,self.rtpPort)
 				self.rtspSocket.send(request)
 				self.event=ActionEvents.SETUP
 				printLogToConsole(request)
-				threading.Thread(target=self.recvRtspReply).start()
 			except:
 				self.state=Cstate.CONNECTERROR
 				self.event=ActionEvents.TEARDOWN
@@ -85,8 +86,8 @@ class Client:
 					# printLogToConsole("play moive")
 					self.seqNumber=self.seqNumber+1
 					request=ActionEvents.EVPLAY+": "+self.fileName+' '+RTSPVERSION
-					request+="\nCSeq: "+str(self.seqNumber)
-					request+="\nSession: "+ self.sessionId
+					request+=MESSAGESEP+"CSeq: "+str(self.seqNumber)
+					request+=MESSAGESEP+"Session: "+ self.sessionId
 					self.rtspSocket.send(request)
 					self.event=ActionEvents.PLAY
 					printLogToConsole(request)
@@ -102,14 +103,12 @@ class Client:
 					# printLogToConsole("pause moive")
 					self.seqNumber=self.seqNumber+1
 					request=ActionEvents.EVPAUSE+": "+self.fileName+' '+RTSPVERSION
-					request+="\nCSeq: "+ str(self.seqNumber)
-					request+="\nSession: "+ self.sessionId
+					request+=MESSAGESEP+"CSeq: "+ str(self.seqNumber)
+					request+=MESSAGESEP+"Session: "+ self.sessionId
 					self.rtspSocket.send(request)
 					self.event=ActionEvents.PAUSE
 					printLogToConsole(request)
-					stTime=datetime.datetime.now()
-					self.playTimeElapsed=self.playTimeElapsed+((stTime-self.playStartTime).total_seconds())
-					self.playStartTime=stTime
+					self.calculateTimeDiff()
 				except:
 					printLogToConsole("pause movie erro "+str(sys.exc_info()[1]))
 
@@ -120,14 +119,13 @@ class Client:
 				# printLogToConsole("tear down")
 				self.seqNumber=self.seqNumber+1
 				request=ActionEvents.EVTEARDOWN+": "+self.fileName+' '+RTSPVERSION
-				request+="\nCSeq: "+ str(self.seqNumber)
-				request+="\nSession: "+ self.sessionId
+				request+=MESSAGESEP+"CSeq: "+ str(self.seqNumber)
+				request+=MESSAGESEP+"Session: "+ self.sessionId
 				self.rtspSocket.send(request)
 				self.event=ActionEvents.TEARDOWN
 				printLogToConsole(request)
 				if not self.endOfStream:
-					stTime=datetime.datetime.now()
-					self.playTimeElapsed=self.playTimeElapsed+((stTime-self.playStartTime).total_seconds())
+					self.calculateTimeDiff()
 					self.endOfStream=True
 			except:
 				printLogToConsole("tear down error "+str(sys.exc_info()[1]))
@@ -140,8 +138,8 @@ class Client:
 			if self.rtspSocket is not None:
 				self.seqNumber=self.seqNumber+1
 				request=ActionEvents.EVCLOSERTSPSOCKET+": "+self.fileName+' '+RTSPVERSION
-				request+="\nCSeq: "+ str(self.seqNumber)
-				request+="\nSession: "+ self.sessionId
+				request+=MESSAGESEP+"CSeq: "+ str(self.seqNumber)
+				request+=MESSAGESEP+"Session: "+ self.sessionId
 				self.rtspSocket.send(request)
 				self.rtspSocket.close()
 			self.master.destroy()
@@ -159,7 +157,7 @@ class Client:
 
 	def parseRtspReply(self,replyData):
 		printLogToConsole(replyData)
-		temp=replyData.strip().split("\n")
+		temp=replyData.strip().split(MESSAGESEP)
 		replyCode=temp[0].split(' ',1)[1]
 		if replyCode==RESPONSE_OK:
 			if self.event==ActionEvents.SETUP:
@@ -209,7 +207,7 @@ class Client:
 					if not rtpPacket.startswith(RTSPVERSION):
 						rtpp=RtpPacket()
 						rtpp.decode(rtpPacket)
-						if self.frameNumber<rtpp.seqNum():
+						if self.frameNumber<rtpp.seqNum():# ignore late packets with lower sequence number
 							self.frameNumber=rtpp.seqNum()
 							movieFile="cache-"+self.sessionId+".jpg"
 							tmp=open(movieFile,"wb")# write binary
@@ -223,8 +221,8 @@ class Client:
 					else:
 						print rtpPacket
 						self.endOfStream=True
-						temp=rtpPacket.strip().split("\n")
-						self.playTimeElapsed=self.playTimeElapsed+((datetime.datetime.now()-self.playStartTime).total_seconds())
+						temp=rtpPacket.strip().split(MESSAGESEP)
+						self.calculateTimeDiff()
 						self.totalFrame=temp[1].split()[1]
 			except:
 				print "\n"
@@ -238,3 +236,9 @@ class Client:
 			print "client frame count: %s, total frame from server: %s" % (str(frameCount),self.totalFrame)
 			print "transfer rate: %f bit/s" % (frameCount*1.0/(self.playTimeElapsed*8))
 			print "packet loss rate: %f" % (((int(self.totalFrame)-frameCount)*1.0/int(self.totalFrame))*100)
+
+
+	def calculateTimeDiff(self):
+		stTime=datetime.datetime.now()
+		self.playTimeElapsed=self.playTimeElapsed+((stTime-self.playStartTime).total_seconds())
+		self.playStartTime=stTime
