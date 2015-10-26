@@ -92,6 +92,15 @@ class Client:
 					self.event=ActionEvents.PLAY
 					printLogToConsole(request)
 					if self.playStartTime==0: self.playStartTime=datetime.datetime.now()
+					try:
+						if self.rtpSocket is None:
+							self.rtpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)# use UDP for rtp packets
+							self.rtpSocket.bind(('', self.rtpPort))# listen for receiving rtp packets
+						self.playthread=threading.Event()
+						self.playthread.clear()
+						threading.Thread(target=self.parseReplyRtp).start()
+					except:
+						printLogToConsole("start play thread error "+str(sys.exc_info()[1]))
 				except:
 					printLogToConsole("play movie error "+str(sys.exc_info()[1]))
 
@@ -166,16 +175,7 @@ class Client:
 				self.videoSize=temp[3].split()[1]
 			if self.sessionId==temp[2].split()[1]:
 				if self.event==ActionEvents.PLAY:
-					try:
-						if self.rtpSocket is None:
-							self.rtpSocket=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)# use UDP for rtp packets
-							self.rtpSocket.bind(('', self.rtpPort))# listen for receiving rtp packets
-						self.playthread=threading.Event()
-						self.playthread.clear()
-						self.state=Cstate.PLAYING
-						threading.Thread(target=self.parseReplyRtp).start()
-					except:
-						printLogToConsole("start play thread error "+str(sys.exc_info()[1]))
+					self.state=Cstate.PLAYING
 				elif self.event==ActionEvents.PAUSE:
 					self.playthread.set()
 					self.state=Cstate.READY
