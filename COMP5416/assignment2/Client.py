@@ -30,6 +30,7 @@ class Client:
 		self.totalFrame="0"
 		self.frameNumber=0
 		self.endOfStream=False
+		self.fileWritelock=threading.Lock()
 
 
 	def createWidgets(self):
@@ -205,19 +206,23 @@ class Client:
 				rtpPacket=self.rtpSocket.recv(RTPBUFFERSIZE)
 				if rtpPacket:
 					if not rtpPacket.startswith(RTSPVERSION):
-						rtpp=RtpPacket()
-						rtpp.decode(rtpPacket)
-						if self.frameNumber<rtpp.seqNum():# ignore late packets with lower sequence number
-							self.frameNumber=rtpp.seqNum()
-							movieFile="cache-"+self.sessionId+".jpg"
-							tmp=open(movieFile,"wb")# write binary
-							tmp.write(rtpp.getPayload())# write actual data
-							tmp.close()# close to commit to the file
-							self.loadedFrame.append(rtpp)
-							time.sleep(0.1)# pause for 100 milliseconds for the file commiting to disk
-							photo=ImageTk.PhotoImage(Image.open(movieFile))
-							self.label.configure(image=photo,height=288)
-							self.label.image=photo
+						self.fileWritelock.acquire()# acquire lock for writing image file to the disk
+						try:
+							rtpp=RtpPacket()
+							rtpp.decode(rtpPacket)
+							if self.frameNumber<rtpp.seqNum():# ignore late packets with lower sequence number
+								self.frameNumber=rtpp.seqNum()
+								movieFile="cache-"+self.sessionId+".jpg"
+								tmp=open(movieFile,"wb")# write binary
+								tmp.write(rtpp.getPayload())# write actual data
+								tmp.close()# close to commit to the file
+								self.loadedFrame.append(rtpp)
+								time.sleep(0.05)# pause for 50 milliseconds for the file commiting to disk
+								photo=ImageTk.PhotoImage(Image.open(movieFile))
+								self.label.configure(image=photo,height=288)
+								self.label.image=photo
+						finally:
+							self.fileWritelock.release()# release the lock
 					else:
 						print rtpPacket
 						self.endOfStream=True
