@@ -239,7 +239,10 @@ class Client:
 		if self.totalFrame!="0":
 			frameCount=len(self.loadedFrame)
 			print "client frame count: %s, total frame from server: %s" % (str(frameCount),self.totalFrame)
-			print "transfer rate: %f bit/s" % (frameCount*1.0/(self.playTimeElapsed*8))
+			totalBytes=0
+			for rttp in self.loadedFrame:
+				totalBytes+=len(rttp.getPayload())
+			print "transfer rate: %f bit/s" % (totalBytes*8/self.playTimeElapsed)
 			print "packet loss rate: %f" % (((int(self.totalFrame)-frameCount)*1.0/int(self.totalFrame))*100)
 
 
