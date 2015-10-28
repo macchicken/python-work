@@ -34,7 +34,7 @@ def appendZeroToFive(str):
 	if len(str)>=5: return str
 	else: return appendZeroToFive('0'+str)
 
-def toMjpeg(dirName="D:\\workspace\\python-work\\COMP5416\\assignment2\\test"):
+def toMjpeg(dirName="Converted"):
 	waitingData=[]
 	for fileName in os.listdir(dirName):
 		with open(dirName+myseparator+fileName,"rb") as jpgfile:
@@ -45,7 +45,7 @@ def toMjpeg(dirName="D:\\workspace\\python-work\\COMP5416\\assignment2\\test"):
 	time.sleep(1)
 	waitingData.sort(cmp=ImgbinDataCmp)
 	time.sleep(1)
-	with open (dirName+myseparator+"result.Mjpeg","wb") as mjpegFile: 
+	with open (dirName+myseparator+"result-berry.Mjpeg","wb") as mjpegFile: 
 		for tdata in waitingData:
 			mjpegFile.write(tdata.getImgLen())
 			print "write file length %s with file %s" % (tdata.getImgLen(),tdata.getFileName())
