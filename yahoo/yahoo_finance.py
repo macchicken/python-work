@@ -1,5 +1,7 @@
-import tkMessageBox,sys,traceback
-import urllib2,Tkinter,urllib,json,tkSimpleDialog
+import sys,traceback
+import urllib2,Tkinter,urllib,json,tkSimpleDialog,yahooConstants
+
+OPTIONS=sorted(yahooConstants.Currencies.keys())
 
 class MyDialog(tkSimpleDialog.Dialog):
 
@@ -17,6 +19,24 @@ class MyDialog(tkSimpleDialog.Dialog):
     def apply(self):
         first = self.e1.get()
         second = self.e2.get()
+        self.result = first, second
+		
+class DialogWithOptions(tkSimpleDialog.Dialog):
+
+    def body(self, master):
+		self.var = Tkinter.StringVar(master)
+		self.var.set("Afghan Afghani (AFN)") # initial value
+		self.var2 = Tkinter.StringVar(master)
+		self.var2.set("Afghan Afghani (AFN)") # initial value
+		option = apply(Tkinter.OptionMenu, (master, self.var) + tuple(OPTIONS))
+		option.pack()
+		option2 = apply(Tkinter.OptionMenu, (master, self.var2) + tuple(OPTIONS))
+		option2.pack()
+		return option
+
+    def apply(self):
+        first = self.var.get()
+        second = self.var2.get()
         self.result = first, second
 
 class YahooFinance:
@@ -38,16 +58,21 @@ class YahooFinance:
 		self.label.grid(row=0, column=0, columnspan=5, sticky=Tkinter.W+Tkinter.E+Tkinter.N+Tkinter.S, padx=5, pady=5)
 		
 	def getCurrency(self):
-		inputd = MyDialog(self.master)
-		first,second = inputd.result
-		queryurl = urllib.urlencode({'q':'select * from yahoo.finance.xchange where pair in ("'+first.upper()+second.upper()+'")'})
-		request = self.baseurl + queryurl + "&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
-		conn = urllib2.urlopen(request)
-		data = json.loads(conn.read())
-		results = data['query']['results']
-		conn.close()
-		if results['rate']['Date'] == "N/A": self.v.set("no specific currency in the database at the moment")
-		else: self.v.set("Name: %s, Rate: %s on %s %s" % (results['rate']['Name'],results['rate']['Rate'],results['rate']['Date'],results['rate']['Time']))
+		try:
+			inputd = DialogWithOptions(self.master)
+			if inputd.result is not None: 
+				first,second = inputd.result
+				queryurl = urllib.urlencode({'q':'select * from yahoo.finance.xchange where pair in ("'+yahooConstants.Currencies[first]+yahooConstants.Currencies[second]+'")'})
+				request = self.baseurl + queryurl + "&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
+				conn = urllib2.urlopen(request)
+				data = json.loads(conn.read())
+				results = data['query']['results']
+				conn.close()
+				if results['rate']['Date'] == "N/A": self.v.set("no specific currency in the database at the moment")
+				else: self.v.set("Name: %s, Rate: %s on %s %s" % (results['rate']['Name'],results['rate']['Rate'],results['rate']['Date'],results['rate']['Time']))
+		except:
+			print "\n"
+			traceback.print_exc(file=sys.stdout)
 
 	def exitClient(self):
 		self.master.destroy()
