@@ -11,6 +11,8 @@ from itertools import permutations
 import hashlib
 from sys import argv
 
+hashFuncs={"md5":"md5","sha1":"sha1","sha224":"sha224","sha256":"sha256","sha384":"sha384","sha512":"sha512"}# mapping of base hashing functions
+
 def c(sequence):
 	for item in sequence:
 		c.items+=1
@@ -91,19 +93,24 @@ def chineseWordCombinations(guessStr):
 	print 'total of %d permutations' % (c.items)
 
 def hashfile(fileName,blockNum=128,mode="md5"):
+	try:
+		hashFunction=getattr(hashlib, hashFuncs[mode.lower()])
+	except KeyError:
+		return "None"
 	with open(fileName,'rb') as target:
-		hasher=None
-		mode=mode.lower()
-		if mode=="md5": hasher=hashlib.md5()
-		elif mode=="sha1": hasher=hashlib.sha1()
-		if hasher==None: return "None"
+		hasher=hashFunction()
 		blockSize=hasher.block_size
 		for chunk in iter(lambda: target.read(blockNum*blockSize), b''):
 			hasher.update(chunk)
 	return hasher.hexdigest()
 
 def fileChecksum():
-	print 'file checksum:',hashfile(argv[1],128,argv[2]);
+	try:
+		mode=argv[2]
+	except IndexError:
+		mode="md5"
+	print 'file checksum:',hashfile(argv[1],128,mode);
+
 
 if __name__ == '__main__':
 	# dirc_a='L:\\barry-document'
