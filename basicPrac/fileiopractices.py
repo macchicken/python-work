@@ -90,16 +90,20 @@ def chineseWordCombinations(guessStr):
 	f.close()
 	print 'total of %d permutations' % (c.items)
 
-def hashfile(fileName,blockNum=128):
+def hashfile(fileName,blockNum=128,mode="md5"):
 	with open(fileName,'rb') as target:
-		hasher=hashlib.md5()
+		hasher=None
+		mode=mode.lower()
+		if mode=="md5": hasher=hashlib.md5()
+		elif mode=="sha1": hasher=hashlib.sha1()
+		if hasher==None: return "None"
 		blockSize=hasher.block_size
 		for chunk in iter(lambda: target.read(blockNum*blockSize), b''):
 			hasher.update(chunk)
 	return hasher.hexdigest()
 
 def fileChecksum():
-	print 'file md5:',hashfile(argv[1]);
+	print 'file checksum:',hashfile(argv[1],128,argv[2]);
 
 if __name__ == '__main__':
 	# dirc_a='L:\\barry-document'
