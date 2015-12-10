@@ -86,9 +86,7 @@ class Client:
 				try:
 					# printLogToConsole("play moive")
 					self.seqNumber=self.seqNumber+1
-					request=ActionEvents.EVPLAY+": "+self.fileName+' '+RTSPVERSION
-					request+=MESSAGESEP+"CSeq: "+str(self.seqNumber)
-					request+=MESSAGESEP+"Session: "+ self.sessionId
+					request=self.constructReq(ActionEvents.EVPLAY)
 					self.rtspSocket.send(request)
 					self.event=ActionEvents.PLAY
 					printLogToConsole(request)
@@ -112,9 +110,7 @@ class Client:
 				try:
 					# printLogToConsole("pause moive")
 					self.seqNumber=self.seqNumber+1
-					request=ActionEvents.EVPAUSE+": "+self.fileName+' '+RTSPVERSION
-					request+=MESSAGESEP+"CSeq: "+ str(self.seqNumber)
-					request+=MESSAGESEP+"Session: "+ self.sessionId
+					request=self.constructReq(ActionEvents.EVPAUSE)
 					self.rtspSocket.send(request)
 					self.event=ActionEvents.PAUSE
 					printLogToConsole(request)
@@ -128,9 +124,7 @@ class Client:
 			try:
 				# printLogToConsole("tear down")
 				self.seqNumber=self.seqNumber+1
-				request=ActionEvents.EVTEARDOWN+": "+self.fileName+' '+RTSPVERSION
-				request+=MESSAGESEP+"CSeq: "+ str(self.seqNumber)
-				request+=MESSAGESEP+"Session: "+ self.sessionId
+				request=self.constructReq(ActionEvents.EVTEARDOWN)
 				self.rtspSocket.send(request)
 				self.event=ActionEvents.TEARDOWN
 				printLogToConsole(request)
@@ -147,9 +141,7 @@ class Client:
 			self.teardown()
 			if self.rtspSocket is not None:
 				self.seqNumber=self.seqNumber+1
-				request=ActionEvents.EVCLOSERTSPSOCKET+": "+self.fileName+' '+RTSPVERSION
-				request+=MESSAGESEP+"CSeq: "+ str(self.seqNumber)
-				request+=MESSAGESEP+"Session: "+ self.sessionId
+				request=self.constructReq(ActionEvents.EVCLOSERTSPSOCKET)
 				self.rtspSocket.send(request)
 				self.rtspSocket.close()
 			self.master.destroy()
@@ -213,11 +205,10 @@ class Client:
 							if self.frameNumber<rtpp.seqNum():# ignore late packets with lower sequence number
 								self.frameNumber=rtpp.seqNum()
 								movieFile="cache-"+self.sessionId+".jpg"
-								tmp=open(movieFile,"wb")# write binary
-								tmp.write(rtpp.getPayload())# write actual data
-								tmp.close()# close to commit to the file
+								with open(movieFile,"wb") as tmp:# write binary
+									tmp.write(rtpp.getPayload())# write actual data
 								self.loadedFrame.append(rtpp)
-								time.sleep(0.05)# pause for 50 milliseconds for the file commiting to disk
+								time.sleep(0.05)# pause for 50 milliseconds for synchronized with server sending interval
 								photo=ImageTk.PhotoImage(Image.open(movieFile))
 								self.label.configure(image=photo,height=288)
 								self.label.image=photo
@@ -250,3 +241,9 @@ class Client:
 		stTime=datetime.datetime.now()
 		self.playTimeElapsed=self.playTimeElapsed+((stTime-self.playStartTime).total_seconds())
 		self.playStartTime=stTime
+		
+	def constructReq(self,actionEv):
+		request=actionEv+": "+self.fileName+' '+RTSPVERSION
+		request+=MESSAGESEP+"CSeq: "+ str(self.seqNumber)
+		request+=MESSAGESEP+"Session: "+ self.sessionId
+		return request
