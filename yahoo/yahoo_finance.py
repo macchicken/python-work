@@ -1,43 +1,6 @@
-import sys,traceback
-import urllib2,Tkinter,urllib,json,tkSimpleDialog,yahooConstants
+import sys,traceback,Tkinter,UIItems
+from DataResource import FinanceResource
 
-OPTIONS=sorted(yahooConstants.Currencies.keys())
-
-class MyDialog(tkSimpleDialog.Dialog):
-
-    def body(self, master):
-        Tkinter.Label(master, text="Currency from:").grid(row=0)
-        Tkinter.Label(master, text="Currency to:").grid(row=1)
-
-        self.e1 = Tkinter.Entry(master)
-        self.e2 = Tkinter.Entry(master)
-
-        self.e1.grid(row=0, column=1)
-        self.e2.grid(row=1, column=1)
-        return self.e1 # initial focus
-
-    def apply(self):
-        first = self.e1.get()
-        second = self.e2.get()
-        self.result = first, second
-		
-class DialogWithOptions(tkSimpleDialog.Dialog):
-
-    def body(self, master):
-		self.var = Tkinter.StringVar(master)
-		self.var.set("Afghan Afghani (AFN)") # initial value
-		self.var2 = Tkinter.StringVar(master)
-		self.var2.set("Afghan Afghani (AFN)") # initial value
-		option = apply(Tkinter.OptionMenu, (master, self.var) + tuple(OPTIONS))
-		option.pack()
-		option2 = apply(Tkinter.OptionMenu, (master, self.var2) + tuple(OPTIONS))
-		option2.pack()
-		return option
-
-    def apply(self):
-        first = self.var.get()
-        second = self.var2.get()
-        self.result = first, second
 
 class YahooFinance:
 	
@@ -59,17 +22,14 @@ class YahooFinance:
 		
 	def getCurrency(self):
 		try:
-			inputd = DialogWithOptions(self.master)
-			if inputd.result is not None: 
+			inputd = UIItems.DialogWithOptions(self.master)
+			if inputd.result is not None:
 				first,second = inputd.result
-				queryurl = urllib.urlencode({'q':'select * from yahoo.finance.xchange where pair in ("'+yahooConstants.Currencies[first]+yahooConstants.Currencies[second]+'")'})
-				request = self.baseurl + queryurl + "&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback="
-				conn = urllib2.urlopen(request)
-				data = json.loads(conn.read())
-				results = data['query']['results']
-				conn.close()
-				if results['rate']['Date'] == "N/A": self.v.set("no specific currency in the database at the moment")
-				else: self.v.set("Name: %s, Rate: %s on %s %s" % (results['rate']['Name'],results['rate']['Rate'],results['rate']['Date'],results['rate']['Time']))
+				currencies=UIItems.getCurrencyShort(first),UIItems.getCurrencyShort(second)
+				with FinanceResource(currencies) as reso:
+					results = reso['query']['results']
+					if results['rate']['Date'] == "N/A": self.v.set("no specific currency in the database at the moment")
+					else: self.v.set("Name: %s, Rate: %s on %s %s" % (results['rate']['Name'],results['rate']['Rate'],results['rate']['Date'],results['rate']['Time']))
 		except:
 			print "\n"
 			traceback.print_exc(file=sys.stdout)
