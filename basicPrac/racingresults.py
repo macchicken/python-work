@@ -97,18 +97,23 @@ def getOneMatchData(onemFile,onemdate):
 
 
 if __name__ == '__main__':
-	data,status,reason,content_type,content_disposition=connectHttpFromDomain(baseUrl,'')
-	soup=BeautifulSoup(data,'html.parser')
-	tabresult=soup.find_all('table')
-	for tab in tabresult:
-		if tab["class"]==[u'bigcal']:
-			racing=tab.find_all('td')
-			raingmatches=[]
-			for ra in racing:
-				spans=ra.select("a > span.notice > span")
-				if int(spans[0].string)>0:
-					raingmatches.append(ra.select("a")[0]["href"])
-			break
-	for onemdate in raingmatches:
-		onemFile=onemdate.split("/")[2]
+	# data,status,reason,content_type,content_disposition=connectHttpFromDomain(baseUrl,'')
+	# soup=BeautifulSoup(data,'html.parser')
+	# tabresult=soup.find_all('table')
+	# for tab in tabresult:
+		# if tab["class"]==[u'bigcal']:
+			# racing=tab.find_all('td')
+			# raingmatches=[]
+			# for ra in racing:
+				# spans=ra.select("a > span.notice > span")
+				# if int(spans[0].string)>0:
+					# raingmatches.append(ra.select("a")[0]["href"])
+			# break
+	# for onemdate in raingmatches:
+		# onemFile=onemdate.split("/")[2]
+	onemFile=raw_input("enter the date(yyyy-mm-dd) of matches looking for")
+	result=re.match(r'[1-9][0-9]{3}-[0-9]{1,2}-[0-9]{1,2}',onemFile)
+	if result:
+		onemdate="/meetings/"+onemFile+"/"
+		print onemdate
 		getOneMatchData(onemFile,onemdate)
