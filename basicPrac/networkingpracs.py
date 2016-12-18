@@ -13,7 +13,7 @@ or
 
 from httplib import HTTPConnection
 from os.path import basename
-import socket
+import socket,json
 from ssl import wrap_socket
 from pprint import pformat
 from urllib2 import urlopen
@@ -22,6 +22,7 @@ from sys import exc_info
 from Queue import Queue
 from threading import Thread
 from argparse import ArgumentParser
+from bs4 import BeautifulSoup
 
 SUFFIXS=['gif','jpg','jpeg','png','bmp','mp3','wav','wma','doc']
 urlQ=Queue()
@@ -126,22 +127,26 @@ def downloadYahooPicData():
 
 
 def download163galleryData(mutiltask=False):
-	with open("digi163galleryData.txt","r") as target:
+	data,status,reason,content_type,content_disposition=connectHttpFromDomain("ent.163.com","/photoview/00AJ0003/620366.html","-1")
+	if status==200 and reason=='OK':
+		pageData=BeautifulSoup(data,'html.parser')
+		galleryData=pageData.find("textarea",attrs={"name": "gallery-data"})
+		jData=json.loads(galleryData.contents[0].strip())
+		imgList=jData["list"]
 		c.items=0
-		for text in c(target):
-			if mutiltask:urlQ.put(text)
+		for imgObj in c(imgList):
+			imgUrl=imgObj["oimg"].strip("\n|' '")
+			if mutiltask:
+				urlQ.put(imgUrl)
 			else:
-				# urlItems=text.split('/')
-				# downloadFilebyUrl(text,urlItems[-1].replace('\n',''))
-				downloadFilebyUrl(text,basename(text).replace('\n',''))
-	if not target.closed:print 'done';target.close()
-	if mutiltask:
-		for i in range(10):
-			t=Thread(target=downloadFileWorker)
-			t.daemon=True
-			t.start()
-		urlQ.join()
-	print '%d file downloaded' % (c.items)
+				downloadFilebyUrl(imgUrl,basename(imgUrl))
+		if mutiltask:
+			for i in range(10):
+				t=Thread(target=downloadFileWorker)
+				t.daemon=True
+				t.start()
+			urlQ.join()
+		print '%d file downloaded' % (c.items)
 
 def download911PopData():
 	error_data=[]
@@ -187,7 +192,7 @@ def main():
 
 if __name__ == '__main__':
 	# print transferSuffix('attachment;ttttfilename=news_pic.JPG.jpg')
-	connectSSl('www.youtube.com')
+	# connectSSl('www.youtube.com')
 	# print basename('http://imgbbs.ph.126.net/_FyQQtL0d8zfWS12JiknvA==/2204512017697878635.jpg')
-	# main()
-	pass
+	main()
+	# pass
