@@ -12,8 +12,7 @@ or
 """
 
 from httplib import HTTPConnection
-from os.path import basename
-import socket,json
+import socket,json,os
 from ssl import wrap_socket
 from pprint import pformat
 from urllib2 import urlopen
@@ -26,6 +25,7 @@ from bs4 import BeautifulSoup
 
 SUFFIXS=['gif','jpg','jpeg','png','bmp','mp3','wav','wma','doc']
 urlQ=Queue()
+if not os.path.isdir("downloaddirc"): os.mkdir("downloaddirc")
 
 def c(sequence):
 	for item in sequence:
@@ -102,7 +102,7 @@ def downloadFilebyUrl(requestUrl,FileName):
 def downloadFileWorker():
 	while True:
 		requestUrl=urlQ.get(block=True)
-		downloadFilebyUrl(requestUrl,basename(requestUrl).replace('\n',''))
+		downloadFilebyUrl(requestUrl,os.path.basename(requestUrl).replace('\n',''))
 		urlQ.task_done()
 
 def parseYahooPicVarData():
@@ -122,31 +122,35 @@ def downloadYahooPicData():
 	for requestUrl in c(requestUrlList):
 		# urlItems=requestUrl.split('/')
 		# downloadFilebyUrl(requestUrl,urlItems[-1])
-		downloadFilebyUrl(requestUrl,basename(requestUrl))
+		downloadFilebyUrl(requestUrl,os.path.basename(requestUrl))
 	print '%d file downloaded' % (c.items)
 
 
+# galleryDataUrl  /photoview/00AJ0003/620366.html
 def download163galleryData(mutiltask=False):
-	data,status,reason,content_type,content_disposition=connectHttpFromDomain("ent.163.com","/photoview/00AJ0003/620366.html","-1")
-	if status==200 and reason=='OK':
-		pageData=BeautifulSoup(data,'html.parser')
-		galleryData=pageData.find("textarea",attrs={"name": "gallery-data"})
-		jData=json.loads(galleryData.contents[0].strip())
-		imgList=jData["list"]
-		c.items=0
-		for imgObj in c(imgList):
-			imgUrl=imgObj["oimg"].strip("\n|' '")
-			if mutiltask:
-				urlQ.put(imgUrl)
-			else:
-				downloadFilebyUrl(imgUrl,basename(imgUrl))
-		if mutiltask:
-			for i in range(10):
-				t=Thread(target=downloadFileWorker)
-				t.daemon=True
-				t.start()
-			urlQ.join()
-		print '%d file downloaded' % (c.items)
+	with open("neteaseData.txt","rb") as tempRead:
+		for line in tempRead:
+			galleryDataUrl=line.strip("\n|' '").split("/",1)
+			data,status,reason,content_type,content_disposition=connectHttpFromDomain(galleryDataUrl[0],"/"+galleryDataUrl[1],"-1")
+			if status==200 and reason=='OK':
+				pageData=BeautifulSoup(data,'html.parser')
+				galleryData=pageData.find("textarea",attrs={"name": "gallery-data"})
+				jData=json.loads(galleryData.contents[0].strip())
+				imgList=jData["list"]
+				c.items=0
+				for imgObj in c(imgList):
+					imgUrl=imgObj["oimg"].strip("\n|' '")
+					if mutiltask:
+						urlQ.put(imgUrl)
+					else:
+						downloadFilebyUrl(imgUrl,os.path.basename(imgUrl))
+				if mutiltask:
+					for i in range(10):
+						t=Thread(target=downloadFileWorker)
+						t.daemon=True
+						t.start()
+					urlQ.join()
+				print '%d file downloaded' % (c.items)
 
 def download911PopData():
 	error_data=[]
@@ -170,11 +174,30 @@ def downloadMsnPicData():
 		for line in c(target):
 			# urlItems=line.split('/')
 			# downloadFilebyUrl(line,urlItems[-1].replace('\n',''))
-			downloadFilebyUrl(line,basename(line).replace('\n',''))
+			downloadFilebyUrl(line,os.path.basename(line).replace('\n',''))
 	if not target.closed:
 		print 'closing'
 		target.close()
 	print '%d file downloaded' % (c.items)
+
+def downloadEntqqData():
+	with open("netqqData.txt","rb") as tempRead:
+		for line in tempRead:
+			galleryDataUrl=line.strip("\n|' '").split("/",1)
+			data,status,reason,content_type,content_disposition=connectHttpFromDomain(galleryDataUrl[0],"/"+galleryDataUrl[1],"-1")
+			if status==200 and reason=='OK':
+				pageData=BeautifulSoup(data,'html.parser')
+				alternateUrl=pageData.find("link",attrs={"rel":"alternate"})["href"].replace("http://",'').split("/",1)
+				adata,astatus,areason,acontent_type,acontent_disposition=connectHttpFromDomain(alternateUrl[0],"/"+alternateUrl[1],"0")
+				if astatus==200 and areason=='OK':
+					apageData=BeautifulSoup(adata,'html.parser')
+					contentFontsmall=apageData.find("div",attrs={"class":"content fontsmall"})
+					imageSplits=contentFontsmall.find_all("div",attrs={"class":"image split"})
+					c.items=0
+					for oneImage in c(imageSplits):
+						realImage=oneImage.select("img")[0]["src"]
+						downloadFilebyUrl(realImage,realImage.split("/")[-2:][0]+".jpg")
+					print '%d file downloaded' % (c.items)
 
 def main():
 	cmdparse=ArgumentParser(description='download image files from url file')
@@ -183,16 +206,18 @@ def main():
 	group.add_argument('-m','--msn',dest='msn',default=False,action='store_true',help="download msn web pics")
 	group.add_argument('-y','--yahoo',dest='yahoo',default=False,action='store_true',help="download yahoo web pics")
 	group.add_argument('-911','--911pop',dest='pop',default=False,action='store_true',help="download 911pop web pics")
+	group.add_argument('-eq','--entqq',dest='entqq',default=False,action='store_true',help="download ent qq web pics")
 	args=cmdparse.parse_args()
 	if args.netease: download163galleryData(mutiltask=True)
 	elif args.msn: downloadMsnPicData()
 	elif args.yahoo: downloadYahooPicData()
 	elif args.pop: download911PopData()
+	elif args.entqq: downloadEntqqData()
 	else: print 'at least one argument,type -h for help messages'
 
 if __name__ == '__main__':
 	# print transferSuffix('attachment;ttttfilename=news_pic.JPG.jpg')
 	# connectSSl('www.youtube.com')
-	# print basename('http://imgbbs.ph.126.net/_FyQQtL0d8zfWS12JiknvA==/2204512017697878635.jpg')
+	# print os.path.basename('http://imgbbs.ph.126.net/_FyQQtL0d8zfWS12JiknvA==/2204512017697878635.jpg')
 	main()
 	# pass
