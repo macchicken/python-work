@@ -1,0 +1,11 @@
+-- beautyleg
+scrapy crawl beautyleg -a aurl="/member/show.php?ID=NHv2vgORfi&no=1403" -a mname="Tokki" -a mcookie="j86aelu54lgrd6mvfdq0ldjjm1"
+scrapy crawl beautylegoneModel -a mname="Tina" -a mcookie="6sb9v9occ5urvsfivv0d61qmp1"
+scrapy crawl beautylegvideo -a murl="/member/model_list_result.php?no=61" -a mname="Tina" -a mcookie="6sb9v9occ5urvsfivv0d61qmp1"
+scrapy crawl beautylegallmodel -a mcookie="1036v1heq278m6575022uu7gj7"
+python getAllvideo.py "6sb9v9occ5urvsfivv0d61qmp1"
+
+-- event data, it uses current date if no argument given
+scrapy crawl eventbritemaxpage -a gday=25 -a gmonth=01
+scrapy crawl eventbrite -a gday=25 -a gmonth=01
+scrapy crawl whatshappeningsg -a gday=25 -a gmonth=01
