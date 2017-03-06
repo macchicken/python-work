@@ -1,11 +1,16 @@
 -- beautyleg
-scrapy crawl beautyleg -a aurl="/member/show.php?ID=0St2d9mnxU&no=1411" -a mname="Celia" -a mcookie="v4i9n79gjs0miq2nvb6b7kqh07"
-scrapy crawl beautylegoneModel -a mname="Tina" -a mcookie="6sb9v9occ5urvsfivv0d61qmp1"
-scrapy crawl beautylegvideo -a murl="/member/model_list_result.php?no=61" -a mname="Tina" -a mcookie="6sb9v9occ5urvsfivv0d61qmp1"
-scrapy crawl beautylegallmodel -a mcookie="1036v1heq278m6575022uu7gj7"
-python getAllvideo.py "6sb9v9occ5urvsfivv0d61qmp1"
+scrapy crawl beautyleg -a aurl="/member/show.php?ID=kTa91m3KQa&no=1419" -a mname="Xin" -a mcookie="eu6tnpu88q6a97gc0c0jaf03n6"
+scrapy crawl beautylegoneModel -a mname="Tina" -a mcookie="lndf865d94noh0e8qik5e14mt3"
+scrapy crawl beautylegvideo -a murl="/member/model_list_result.php?no=61" -a mname="Tina" -a mcookie="lndf865d94noh0e8qik5e14mt3"
+scrapy crawl beautylegmodelalbumlist -a murl="/member/model_list_result.php?no=117" -a mname="Queenie" -a mcookie="lndf865d94noh0e8qik5e14mt3"
+scrapy crawl beautylegallmodel -a mcookie="lndf865d94noh0e8qik5e14mt3"
+python getAllvideo.py "lndf865d94noh0e8qik5e14mt3"
+python getAllalbum.py "lndf865d94noh0e8qik5e14mt3"
 
 -- event data, it uses current date if no argument given
 scrapy crawl eventbritemaxpage -a gday=25 -a gmonth=01
 scrapy crawl eventbrite -a gday=25 -a gmonth=01
 scrapy crawl whatshappeningsg -a gday=25 -a gmonth=01
+
+-- imdb movie data
+scrapy crawl imdbspider -a myear="2016"
