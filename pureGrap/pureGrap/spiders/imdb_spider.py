@@ -7,6 +7,7 @@ class IMDBSpider(scrapy.Spider):
 
 	def __init__(self, myear=None, *args, **kwargs):
 		super(IMDBSpider, self).__init__(*args, **kwargs)
+		self.syear=myear
 		self.topDir="D:/troopar/imdb/movie"
 		self.workingdir="{}/{}".format(self.topDir,myear)
 		self.myheaders={"Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8","Accept-Encoding":"gzip, deflate, sdch","Accept-Language":"zh-CN,zh;q=0.8","Upgrade-Insecure-Requests":"1","User-Agent":"Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36","Referer":"http://www.imdb.com/search/title?release_date=2016&view=advanced","Host":"www.imdb.com","Cache-Control":"max-age=0","Connection":"keep-alive"}
@@ -20,7 +21,7 @@ class IMDBSpider(scrapy.Spider):
 
 	def start_requests(self):
 		for i in range (100,150):
-			pageUrl="http://www.imdb.com/search/title?release_date=2016&view=advanced&page={}&ref_=adv_prv".format(str(i))
+			pageUrl="http://www.imdb.com/search/title?release_date={}&view=advanced&page={}&ref_=adv_prv".format(self.syear,str(i))
 			yield scrapy.Request(url=pageUrl, headers=self.myheaders, cookies=self.mycookie,callback=self.parse)
 
 	def parse(self, response):
