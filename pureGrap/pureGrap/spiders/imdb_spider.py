@@ -20,7 +20,7 @@ class IMDBSpider(scrapy.Spider):
 				self.mycookie[newLine[0]]=newLine[1]
 
 	def start_requests(self):
-		for i in range (100,150):
+		for i in range (200,250):
 			pageUrl="http://www.imdb.com/search/title?release_date={}&view=advanced&page={}&ref_=adv_prv".format(self.syear,str(i))
 			yield scrapy.Request(url=pageUrl, headers=self.myheaders, cookies=self.mycookie,callback=self.parse)
 

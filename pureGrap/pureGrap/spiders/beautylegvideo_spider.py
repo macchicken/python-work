@@ -24,7 +24,8 @@ class BeautylegVideoSpider(scrapy.Spider):
 
 	def saveActualLink(self,response):
 		actualLink=response.css("a").xpath('@href').extract()[0]
-		self.videoLinks.append(actualLink)
+		if not actualLink.startswith("http:"): self.videoLinks.append("http://www.beautyleg.com{}".format(actualLink))
+		else: self.videoLinks.append(actualLink)
 
 	def spider_closed(self):
 		with open("{}/beautylegVideo/{}.txt".format(self.topDir,self.modelName),"ab") as tempWrite:
