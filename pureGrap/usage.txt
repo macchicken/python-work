@@ -1,16 +1,16 @@
 -- beautyleg
-scrapy crawl beautyleg -a aurl="/member/show.php?ID=kTa91m3KQa&no=1419" -a mname="Xin" -a mcookie="admnuq3djm15ut8g75h719ief3"
-scrapy crawl beautylegoneModel -a mname="Tina" -a mcookie="admnuq3djm15ut8g75h719ief3"
-scrapy crawl beautylegvideo -a murl="/member/model_list_result.php?no=55" -a mname="Aileen" -a mcookie="admnuq3djm15ut8g75h719ief3"
-scrapy crawl beautylegmodelalbumlist -a murl="/member/model_list_result.php?no=117" -a mname="Queenie" -a mcookie="admnuq3djm15ut8g75h719ief3"
-scrapy crawl beautylegallmodel -a mcookie="admnuq3djm15ut8g75h719ief3"
-python getAllvideo.py "admnuq3djm15ut8g75h719ief3"
-python getAllalbum.py "admnuq3djm15ut8g75h719ief3"
+scrapy crawl beautyleg -a aurl="/member/show.php?ID=kTa91m3KQa&no=1419" -a mname="Xin" -a mcookie="admnuq3djm15ut8g75h719ief3" -a mdir="D:/barry"
+scrapy crawl beautylegoneModel -a mname="Tina" -a mcookie="admnuq3djm15ut8g75h719ief3" -a mdir="D:/barry"
+scrapy crawl beautylegvideo -a murl="/member/model_list_result.php?no=55" -a mname="Aileen" -a mcookie="admnuq3djm15ut8g75h719ief3" -a mdir="D:/barry"
+scrapy crawl beautylegmodelalbumlist -a murl="/member/model_list_result.php?no=117" -a mname="Queenie" -a mcookie="admnuq3djm15ut8g75h719ief3" -a mdir="D:/barry"
+scrapy crawl beautylegallmodel -a mcookie="admnuq3djm15ut8g75h719ief3" -a mdir="D:/barry"
+python getAllvideo.py "admnuq3djm15ut8g75h719ief3" "D:/barry"
+python getAllalbum.py "admnuq3djm15ut8g75h719ief3" "D:/barry"
 
 -- event data, it uses current date if no argument given
-scrapy crawl eventbritemaxpage -a gday=25 -a gmonth=01
-scrapy crawl eventbrite -a gday=25 -a gmonth=01
-scrapy crawl whatshappeningsg -a gday=25 -a gmonth=01
+scrapy crawl eventbritemaxpage -a gday=25 -a gmonth=01 -a mdir="D:/barry"
+scrapy crawl eventbrite -a gday=25 -a gmonth=01 -a mdir="D:/barry"
+scrapy crawl whatshappeningsg -a gday=25 -a gmonth=01 -a mdir="D:/barry"
 
 -- imdb movie data
-scrapy crawl imdbspider -a myear="2016"
+scrapy crawl imdbspider -a myear="2016" -a mdir="D:/barry"
